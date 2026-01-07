@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <sysexits.h>
 
 enum
 {
@@ -23,6 +24,7 @@ enum
 
 enum
 {
+	digest,
 	print,
 	quiet,
 	reverse,
@@ -35,6 +37,7 @@ enum
 	read_in,
 };
 
+#define DGST	1 << digest
 #define PRINT	1 << print
 #define QUIET	1 << quiet
 #define REVERSE	1 << reverse
@@ -64,7 +67,7 @@ typedef struct	s_data
 	char		*out_file;
 }				t_data;
 
-typedef bool (*t_cmd_fn)(const t_data *);
+typedef bool (*t_cmd_fn)(t_data *, char **);
 typedef struct	s_cmd
 {
 	const char	*name;
@@ -90,9 +93,9 @@ typedef struct MD5_CTX
 }				t_MD5_CTX;
 
 //	error.c
-bool	ret_err_mess(const char *mess);
-bool	ret_err_mess_code(const char *mess, const int errnum);
-bool	ret_err_mess_opt(const char *mess, const char *opt);
+uint8_t	exit_err_mess(const char *mess, t_data *data, const uint8_t ret_value);
+uint8_t	exit_err_mess_code(const char *mess, const int errnum, t_data *data, const uint8_t ret_value);
+uint8_t	exit_err_mess_opt(const char *mess, const char *opt, t_data *data, const uint8_t ret_value);
 
 //	utils.c
 uint32_t	rotate_left(uint8_t bits, uint32_t word);
@@ -107,6 +110,7 @@ char 	*read_stdin( void );
 bool	is_in_pipe( void );
 
 //	display.c
+void	print_usage(t_data *data);
 void	MDdisplay(const uint8_t digest[16], uint8_t options, const char *name, const char *to_hash);
 void	SHAdisplay(const uint8_t digest[16], uint8_t options, const char *name, const char *to_hash);
 
@@ -114,7 +118,7 @@ void	SHAdisplay(const uint8_t digest[16], uint8_t options, const char *name, con
 char	*ft_strjoin(char const *s1, char const *s2);
 
 //	parser.c
-bool	parser(t_data *data, char **argv);
+bool	dgst_parser(t_data *data, char **argv);
 
 //	sha256.c
 extern int		SHA256Reset(t_SHA256_CTX *);
@@ -143,6 +147,9 @@ void	routine(t_data *data);
 //	stdin.c
 char 	*read_stdin( void );
 bool	is_in_pipe( void );
+
+//	digest.c
+bool	dgst_main(t_data *data, char **argv);
 
 //	main.c
 #endif

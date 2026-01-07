@@ -1,20 +1,32 @@
 #include "../inc/main.h"
 
-bool	ret_err_mess(const char *mess)
+void	exit_free(t_data *data)
 {
+	if (data->in)
+		free(data->in);
+}
+
+uint8_t	exit_err_mess(const char *mess, t_data *data, const uint8_t ret_value)
+{
+	exit_free(data);
 	if (write(STDERR_FILENO, mess, strlen(mess)) < 0)
+	{
 		fprintf(stderr, "Fatal Error: write(): %s\n", strerror(errno));
-	return (1);
+		return (EX_OSERR);
+	}
+	exit (ret_value);
 }
 
-bool	ret_err_mess_code(const char *mess, const int errnum)
+uint8_t	exit_err_mess_code(const char *mess, const int errnum, t_data *data, const uint8_t ret_value)
 {
+	exit_free(data);
 	fprintf(stderr, "%s: %s(%d)\n", mess, strerror(errnum), errnum);
-	return (1);
+	exit (ret_value);
 }
 
-bool	ret_err_mess_opt(const char *mess, const char *opt)
+uint8_t	exit_err_mess_opt(const char *mess, const char *opt, t_data *data, const uint8_t ret_value)
 {
+	exit_free(data);
 	fprintf(stderr, mess, opt);
-	return (1);
+	exit (ret_value);
 }
