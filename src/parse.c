@@ -56,10 +56,11 @@ bool	dgst_parser(t_data *data, char **argv)
 		data->options &= ~(PRINT);
 	if (data->options & (STRING))
 	{
-		if (*runner)
-			data->string = *(runner++);
-		else
+		data->inputs = runner;
+		if (!data->inputs)
 			exit_err_mess("ft_ssl: '-s' options gets a invalid argument. Run './ft_ssl -h' for usage.\n", data, EX_USAGE);
+		// if (*runner)
+		// 	data->string = *(runner++);
 	}
 	if (!algo && !(data->options & USAGE))
 		exit_err_mess("ft_ssl: no agorithm. Run \"./ft_ssl -h\" for usage\n", data, EX_USAGE);

@@ -36,19 +36,20 @@ char	*file_to_str(const char *filename)
 		fprintf(stderr, "ft_ssl: fopen: '%s': %s\n", filename, strerror(errno));
 		return (NULL);
 	}
-	while (fgets((char *)buf, 255, file))
+	while (fread((char *)buf, 1, 255, file) > 0)
 	{
 		tmp = content;
-		// if (content != NULL)
-		// 	content = ft_strjoin(content, (char *)buf);
-		// else
-		// 	content = strdup((char *)buf);
+		if (content != NULL)
+			content = ft_strjoin(content, (char *)buf);
+		else
+			content = strdup((char *)buf);
 		if (content == NULL)
 		{
 			fprintf(stderr, "ft_ssl: fatal error: %s\n", strerror(errno));
 			free(tmp);
 			return (NULL);
 		}
+		bzero(buf, 256);
 		free(tmp);
 	}
 	if (ferror(file))

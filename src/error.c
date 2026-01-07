@@ -30,3 +30,9 @@ uint8_t	exit_err_mess_opt(const char *mess, const char *opt, t_data *data, const
 	fprintf(stderr, mess, opt);
 	exit (ret_value);
 }
+
+bool	ret_err_mess_code(const char *mess, const int errnum)
+{
+	fprintf(stderr, "%s: %s(%d)\n", mess, strerror(errnum), errnum);
+	return (1);
+}

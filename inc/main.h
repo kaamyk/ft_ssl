@@ -70,9 +70,16 @@ typedef struct	s_data
 typedef bool (*t_cmd_fn)(t_data *, char **);
 typedef struct	s_cmd
 {
-	const char	*name;
+	const char		*name;
 	const t_cmd_fn	fn;
 }				t_cmd;
+
+typedef bool (*t_algo_fn)(t_data *);
+typedef struct	s_algo
+{
+	const char		*name;
+	const t_algo_fn	fn;
+}				t_algo;
 
 typedef struct SHA256_CTX
 {
@@ -96,6 +103,7 @@ typedef struct MD5_CTX
 uint8_t	exit_err_mess(const char *mess, t_data *data, const uint8_t ret_value);
 uint8_t	exit_err_mess_code(const char *mess, const int errnum, t_data *data, const uint8_t ret_value);
 uint8_t	exit_err_mess_opt(const char *mess, const char *opt, t_data *data, const uint8_t ret_value);
+bool	ret_err_mess_code(const char *mess, const int errnum);
 
 //	utils.c
 uint32_t	rotate_left(uint8_t bits, uint32_t word);
@@ -111,8 +119,8 @@ bool	is_in_pipe( void );
 
 //	display.c
 void	print_usage(t_data *data);
-void	MDdisplay(const uint8_t digest[16], uint8_t options, const char *name, const char *to_hash);
-void	SHAdisplay(const uint8_t digest[16], uint8_t options, const char *name, const char *to_hash);
+bool	MDDisplay(const uint8_t digest[16], uint8_t options, const char *name, const char *to_hash);
+void	SHADisplay(const uint8_t digest[16], uint8_t options, const char *name, const char *to_hash);
 
 // ft_strjoin.c
 char	*ft_strjoin(char const *s1, char const *s2);
@@ -134,7 +142,7 @@ void	MD5Update(t_MD5_CTX *context, uint8_t *input, unsigned int inputLen);
 void	MD5Final(uint8_t digest [16], t_MD5_CTX *context);
 void	MD5memset(uint8_t *output, const uint8_t value, const uint32_t len);
 uint8_t	*MD5memcpy(uint8_t *dest, const uint8_t *src, const uint32_t len);
-bool	MDString(const t_data *data);
+bool	MDMain(t_data *data);
 
 //	base64.c
 char	*base64_encode(const char *input);

@@ -13,11 +13,13 @@ int main( int argc, char **argv )
 	};
 	
 	
+	if (argc < 2)
+		print_usage(&data);
 	if (argv && *argv && *(argv + 1) && **(argv + 1) != '-')
 		data.algo = *(argv + 1);
 	else
 	{
-		print_usage();
+		print_usage(&data);
 		return (EX_USAGE);
 	}
 	for (uint8_t i = 0; cmds[i].name; i++)
