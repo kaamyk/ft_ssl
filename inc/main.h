@@ -100,9 +100,10 @@ typedef struct MD5_CTX
 }				t_MD5_CTX;
 
 //	error.c
-uint8_t	exit_err_mess(const char *mess, t_data *data, const uint8_t ret_value);
-uint8_t	exit_err_mess_code(const char *mess, const int errnum, t_data *data, const uint8_t ret_value);
-uint8_t	exit_err_mess_opt(const char *mess, const char *opt, t_data *data, const uint8_t ret_value);
+void	exit_err_code(t_data *data, const uint8_t ret_value);
+void	exit_err_mess(const char *mess, t_data *data, const uint8_t ret_value);
+void	exit_err_mess_code(const char *mess, const int errnum, t_data *data, const uint8_t ret_value);
+void	exit_err_mess_opt(const char *mess, const char *opt, t_data *data, const uint8_t ret_value);
 bool	ret_err_mess_code(const char *mess, const int errnum);
 
 //	utils.c
@@ -119,8 +120,8 @@ bool	is_in_pipe( void );
 
 //	display.c
 void	print_usage(t_data *data);
-bool	MDDisplay(const uint8_t digest[16], uint8_t options, const char *name, const char *to_hash);
-void	SHADisplay(const uint8_t digest[16], uint8_t options, const char *name, const char *to_hash);
+bool	MDDisplay(const uint8_t digest[16], uint16_t options, const char *name, const char *to_hash);
+void	SHADisplay(const uint8_t digest[16], uint16_t options, const char *name, const char *to_hash);
 
 // ft_strjoin.c
 char	*ft_strjoin(char const *s1, char const *s2);

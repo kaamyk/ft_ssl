@@ -64,7 +64,8 @@ bool	dgst_parser(t_data *data, char **argv)
 	}
 	if (!algo && !(data->options & USAGE))
 		exit_err_mess("ft_ssl: no agorithm. Run \"./ft_ssl -h\" for usage\n", data, EX_USAGE);
-	data->inputs = runner;
+	if (runner && *runner)
+		data->inputs = runner;
 	return (0);
 }
 

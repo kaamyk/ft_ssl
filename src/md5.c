@@ -206,13 +206,30 @@ void	MD5Final(uint8_t digest [16], t_MD5_CTX *context)
 	MD5memset((uint8_t *)context, 0, sizeof(*context));
 }
 
+bool	MDRoutine(const t_data *data, const char *runner, const char *to_hash)
+{
+	t_MD5_CTX	context = {0};
+	uint8_t		digest[MD5_HSSZ] = {0};
+	
+	printf("MDRoutine() :\n\tREAD_IN == %d\n\tPRINT == %d\n", data->options & READ_IN, data->options & PRINT);
+	MD5Init(&context);
+	MD5Update(&context, (uint8_t *)to_hash, strlen(to_hash));
+	MD5Final(digest, &context);
+	return (MDDisplay(digest, data->options, runner, to_hash));
+}
+
 bool	MDMain(t_data *data)
 {
 	char		**runner = data->inputs;
 	char		*to_hash = NULL;
-	uint8_t		digest[MD5_HSSZ] = {0};
-	t_MD5_CTX	context = {0};
 	
+	if (data->options & READ_IN)
+	{
+		if (MDRoutine(data, "stdin", data->in))
+			exit_err_code(data, EX_OSERR);
+	}
+	if (!runner)
+		return (0);
 	while (*runner)
 	{
 		if (data->options & STRING)
@@ -220,17 +237,13 @@ bool	MDMain(t_data *data)
 			to_hash = *runner;
 			data->options &= ~(STRING);
 		}
-		else
+		else 
 		{
 			to_hash = file_to_str(*runner);
-			printf("to_hash == [%s]\n", to_hash);
 			if (to_hash == NULL)
 				exit(EX_OSERR);
 		}
-		MD5Init(&context);
-		MD5Update(&context, (uint8_t *)to_hash, strlen(to_hash));
-		MD5Final(digest, &context);
-		if (MDDisplay(digest, data->options, *runner, to_hash))
+		if (MDRoutine(data, *runner, to_hash))
 			exit_err_mess("Leaving.", data, EX_OSERR);
 		free(to_hash);
 		++runner;

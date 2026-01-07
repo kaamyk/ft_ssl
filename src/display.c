@@ -11,8 +11,17 @@ void	print_usage(t_data *data)
 bool	header_display(uint8_t options, const char *to_hash)
 {
 	size_t	to_print_size = strlen(to_hash);
+	char	*nl = strchr(to_hash, '\n');
 
-	if (to_hash[to_print_size - 1] == '\n')
+	if (nl)
+	{
+		if (nl - to_hash > 20)
+			to_print_size = 20;
+		else
+			to_print_size = nl - to_hash - 1;
+		
+	}
+	else if (to_hash[to_print_size - 1] == '\n')
 		--to_print_size;
 	if (options & PRINT)
 	{
@@ -22,27 +31,34 @@ bool	header_display(uint8_t options, const char *to_hash)
 		return (1);
 	}
 	else
+	{
 		if (write(STDOUT_FILENO, "(stdin)= ", 10) < 0)
 			return (1);
+	}
 	return (0);
 }
 
-bool	MDDisplay(const uint8_t digest[16], uint8_t options, const char *name, const char *to_hash)
+bool	MDDisplay(const uint8_t digest[16], uint16_t options, const char *name, const char *to_hash)
 {
+	printf("MDDisplay() :\n\tREAD_IN == %d\n\tPRINT == %d\n\tSTRING == %d\n", options & READ_IN, options & PRINT, options & STRING);
 	if (!(options & QUIET))
 	{
-		if (options & READ_IN && header_display(options, to_hash))
+		if ((options & READ_IN) && header_display(options, to_hash))
 			return (ret_err_mess_code("ft_ssl: fatal error:", errno));
 		else if (!(options & REVERSE))
 		{
 			if (write(STDOUT_FILENO, "MD5", 4) < 0)
 				return (ret_err_mess_code("ft_ssl: fatal error:", errno));
-			if ((options & STRING) \
-				&& printf("(\"%s\")= ", to_hash) < 0)
-				return (ret_err_mess_code("ft_ssl: fatal error:", errno));
-			else if (name \
-				&& printf("(%s)= ", name) < 0)
-				return (ret_err_mess_code("ft_ssl: fatal error:", errno));
+			if ((options & STRING))
+			{
+				if (printf("(\"%s\")= ", to_hash) < 0)
+					return (ret_err_mess_code("ft_ssl: fatal error:", errno));
+			}
+			else if (name)
+			{
+				if (printf("(%s)= ", name) < 0)
+					return (ret_err_mess_code("ft_ssl: fatal error:", errno));
+			}
 		}
 	}
 	for (uint8_t i = 0; i < MD5_HSSZ; i++)

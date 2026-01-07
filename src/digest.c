@@ -4,7 +4,7 @@ bool	dgst_setup(t_data *data, char **argv)
 {
 	if (dgst_parser(data, argv))
 		return (1);
-	else if ((!data->inputs || data->options & (PRINT | READ_IN)) && is_in_pipe())
+	if ((!data->inputs || (data->options & (PRINT))) && is_in_pipe())
 	{
 		data->options |= READ_IN;
 		data->in = read_stdin();
@@ -14,7 +14,7 @@ bool	dgst_setup(t_data *data, char **argv)
 	return (0);
 }
 
-bool	dgst_launch_algo(t_data *data)
+void	dgst_launch_algo(t_data *data)
 {
 	static const t_algo	digests[] = {
 		{"md5", MDMain},
@@ -24,14 +24,18 @@ bool	dgst_launch_algo(t_data *data)
 	for (uint8_t i = 0; digests[i].name; i++)
 	{
 		if (!strcmp(digests[i].name, data->algo))
-			return(digests[i].fn(data));
+		{
+			digests[i].fn(data);
+			return ;
+		}
 	}
-	return (0);
 }
 
 bool	dgst_main(t_data *data, char **argv)
 {
-	if (dgst_setup(data, argv) || dgst_launch_algo(data))
-		return (1);
+	if (!dgst_setup(data, argv))
+		dgst_launch_algo(data);
+	if (data->in)
+		free(data->in);
 	return (0);
 }
