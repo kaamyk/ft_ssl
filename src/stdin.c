@@ -22,6 +22,7 @@ char 	*read_stdin( void )
 		free(tmp);
 		bzero((char *) buf, 256);
 	}
+	// printf("[data->in == %p]", input);
 	return (input);
 }
 

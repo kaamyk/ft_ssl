@@ -33,7 +33,7 @@ char	*file_to_str(const char *filename)
 	
 	if (file == NULL)
 	{
-		fprintf(stderr, "ft_ssl: fopen: '%s': %s\n", filename, strerror(errno));
+		fprintf(stderr, "ft_ssl: fopen: %s: %s\n", filename, strerror(errno));
 		return (NULL);
 	}
 	while (fread((char *)buf, 1, 255, file) > 0)

@@ -27,6 +27,8 @@ int main( int argc, char **argv )
 		if (!strcmp(cmds[i].name, data.algo))
 			return(cmds[i].fn(&data, argv));
 	}
+	if (data.in)
+		free(data.in);
 	if (data.algo)
 		exit_err_mess_opt("ft_ssl: '%s': Unvalid argument. Run './ft_ssl -h' for usage\n", data.algo, &data, EX_USAGE);
 	else

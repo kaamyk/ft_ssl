@@ -15,10 +15,10 @@ bool	stdin_header_display(const uint8_t options, const char *to_hash)
 
 	if (nl)
 	{
-		if (nl - to_hash > 20)
-			to_print_size = 20;
+		if (nl - to_hash > 40)
+			to_print_size = 40;
 		else
-			to_print_size = nl - to_hash - 1;
+			to_print_size = nl - to_hash;
 		
 	}
 	// else if (to_hash[to_print_size - 1] == '\n')
@@ -76,12 +76,13 @@ bool	dgst_display(const uint8_t digest[16], uint16_t options, const char *filena
 {
 	if (!(options & QUIET))
 	{
-		if (printf("%s", algoname) < 0)
+		if (write(STDOUT_FILENO, algoname, strlen(algoname)) < 0)
 			return (ret_err_mess_code("ft_ssl: fatal error:", errno));
 		if ((options & READ_IN))
 		{
 			if (stdin_header_display(options, to_hash))
 				return (ret_err_mess_code("ft_ssl: fatal error:", errno));
+			options &= ~(READ_IN);
 		}
 		else if (!(options & REVERSE))
 		{
