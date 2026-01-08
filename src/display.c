@@ -72,12 +72,11 @@ bool	footer_display(const char *name, const char *to_hash)
 	return (EXIT_SUCCESS);
 }
 
-bool	MDDisplay(const uint8_t digest[16], uint16_t options, const char *name, const char *to_hash)
+bool	dgst_display(const uint8_t digest[16], uint16_t options, const char *filename, const char *to_hash, const char *algoname, const uint8_t hssz)
 {
-	printf("MDDisplay() :\n\tREAD_IN == %d\n\tPRINT == %d\n\tSTRING == %d\n", options & READ_IN, options & PRINT, options & STRING);
 	if (!(options & QUIET))
 	{
-		if (write(STDOUT_FILENO, "MD5", 4) < 0)
+		if (printf("%s", algoname) < 0)
 			return (ret_err_mess_code("ft_ssl: fatal error:", errno));
 		if ((options & READ_IN))
 		{
@@ -86,18 +85,48 @@ bool	MDDisplay(const uint8_t digest[16], uint16_t options, const char *name, con
 		}
 		else if (!(options & REVERSE))
 		{
-			if (header_display(options, name, to_hash))
+			if (header_display(options, filename, to_hash))
 				return (EXIT_FAILURE);
 		}
 	}
-	for (uint8_t i = 0; i < MD5_HSSZ; i++)
+	for (uint8_t i = 0; i < hssz; i++)
 		if (printf ("%02x", digest[i]) < 0)
 			return (ret_err_mess_code("ft_ssl: fatal error:", errno));
 	if ((options & REVERSE) && !(options & READ_IN)
-		&& footer_display(name, to_hash))
+		&& footer_display(filename, to_hash))
 			return (EXIT_FAILURE);
 	fflush(stdout);
 	if (write (STDOUT_FILENO, "\n", 1) < 0)
 		return (ret_err_mess_code("ft_ssl: fatal error:", errno));
 	return (EXIT_SUCCESS);
 }
+
+// bool	MDDisplay(const uint8_t digest[16], uint16_t options, const char *name, const char *to_hash)
+// {
+// 	printf("MDDisplay() :\n\tREAD_IN == %d\n\tPRINT == %d\n\tSTRING == %d\n", options & READ_IN, options & PRINT, options & STRING);
+// 	if (!(options & QUIET))
+// 	{
+// 		if (write(STDOUT_FILENO, "MD5", 4) < 0)
+// 			return (ret_err_mess_code("ft_ssl: fatal error:", errno));
+// 		if ((options & READ_IN))
+// 		{
+// 			if (stdin_header_display(options, to_hash))
+// 				return (ret_err_mess_code("ft_ssl: fatal error:", errno));
+// 		}
+// 		else if (!(options & REVERSE))
+// 		{
+// 			if (header_display(options, name, to_hash))
+// 				return (EXIT_FAILURE);
+// 		}
+// 	}
+// 	for (uint8_t i = 0; i < MD5_HSSZ; i++)
+// 		if (printf ("%02x", digest[i]) < 0)
+// 			return (ret_err_mess_code("ft_ssl: fatal error:", errno));
+// 	if ((options & REVERSE) && !(options & READ_IN)
+// 		&& footer_display(name, to_hash))
+// 			return (EXIT_FAILURE);
+// 	fflush(stdout);
+// 	if (write (STDOUT_FILENO, "\n", 1) < 0)
+// 		return (ret_err_mess_code("ft_ssl: fatal error:", errno));
+// 	return (EXIT_SUCCESS);
+// }

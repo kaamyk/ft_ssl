@@ -215,7 +215,7 @@ bool	MDRoutine(const t_data *data, const char *runner, const char *to_hash)
 	MD5Init(&context);
 	MD5Update(&context, (uint8_t *)to_hash, strlen(to_hash));
 	MD5Final(digest, &context);
-	return (MDDisplay(digest, data->options, runner, to_hash));
+	return (dgst_display(digest, data->options, runner, to_hash, "MD5", MD5_HSSZ));
 }
 
 bool	MDMain(t_data *data)

@@ -14,27 +14,54 @@ bool	dgst_setup(t_data *data, char **argv)
 	return (EXIT_SUCCESS);
 }
 
-void	dgst_launch_algo(t_data *data)
+bool	dgst_exec(t_data *data, t_algo_fn f)
 {
-	static const t_algo	digests[] = {
-		{"md5", MDMain},
-		// {"sha256", SHAString(data)}
-	};
+	char		**runner = data->inputs;
+	char		*to_hash = NULL;
 	
-	for (uint8_t i = 0; digests[i].name; i++)
+	if (data->options & READ_IN)
 	{
-		if (!strcmp(digests[i].name, data->algo))
-		{
-			digests[i].fn(data);
-			return ;
-		}
+		if (f(data, "stdin", data->in))
+			exit_err_code(data, EX_OSERR);
 	}
+	if (!runner)
+		return (EXIT_SUCCESS);
+	while (*runner)
+	{
+		if (data->options & STRING)
+		{
+			to_hash = *runner;
+			data->options &= ~(STRING);
+		}
+		else 
+		{
+			to_hash = file_to_str(*runner);
+			if (to_hash == NULL)
+				exit(EX_OSERR);
+		}
+		if (f(data, *runner, to_hash))
+			exit_err_mess("Leaving.", data, EX_OSERR);
+		free(to_hash);
+		++runner;
+	}
+	return (EXIT_SUCCESS);
 }
 
 bool	dgst_main(t_data *data, char **argv)
 {
-	if (!dgst_setup(data, argv))
-		dgst_launch_algo(data);
+	static const t_algo	digests[] = {
+		{"md5",		MDRoutine	},
+		{"sha256",	SHARoutine	},
+		{NULL,		NULL		}
+	};
+	
+	if (dgst_setup(data, argv))
+		return (EXIT_FAILURE);
+	for (uint8_t i = 0; digests[i].name; i++)
+	{
+		if (!strcmp(digests[i].name, data->algo))
+			dgst_exec(data, digests[i].fn);
+	}
 	if (data->in)
 		free(data->in);
 	return (EXIT_SUCCESS);
