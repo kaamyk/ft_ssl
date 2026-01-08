@@ -315,7 +315,7 @@ bool	SHARoutine(const t_data *data, const char *runner, const char *to_hash)
 		ret_err_mess("ft_ssl: sha256: Input err");
 	else if (SHA256Result(&context, (uint8_t *)digest))
 		ret_err_mess("ft_ssl: sha256: Result err");
-	dgst_display(digest, data->options, runner, to_hash, "sha256", SHA256_HSSZ);
+	dgst_display(digest, data->options, runner, to_hash, "SHA256", SHA256_HSSZ);
 	return (EXIT_SUCCESS);
 }
 

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo './ft_ssl -h'
+./ft_ssl -h
+
 echo 'echo "42 is nice" | ./ft_ssl md5'
 echo "42 is nice" | valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes -q ./ft_ssl md5
 echo '------'
@@ -9,7 +12,7 @@ echo '================================='
 echo 'echo "42 is nice" | ./ft_ssl md5'
 echo "42 is nice" | valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes -q ./ft_ssl md5
 echo '------'
-echo '(stdin)= 35f1d6de0302e2086a4e472266efb3a9'
+echo "42 is nice" | valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes -q openssl md5
 echo '================================='
 
 echo 'echo "42 is nice" | ./ft_ssl md5 -p'
@@ -120,16 +123,14 @@ echo '================================='
 echo 'echo "42 is nice" | ./ft_ssl sha256'
 echo "42 is nice" | valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes -q ./ft_ssl sha256
 echo '------'
-echo -n '(stdin)= '
-echo "42 is nice" | sha256sum
+echo "42 is nice" | openssl sha256
 echo
 echo '================================='
 
 echo 'echo "42 is nice" | ./ft_ssl sha256 -p'
 echo "42 is nice" | valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes -q ./ft_ssl sha256 -p
 echo '------'
-echo -n '("42 is nice")= '
-echo "42 is nice" | sha256sum
+echo "42 is nice" | openssl sha256
 echo
 echo '================================='
 
