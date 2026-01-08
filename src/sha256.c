@@ -312,23 +312,23 @@ bool	SHAString(const t_data *data, const char *to_hash)
 	if (data->options & DECODE)
 	{
 		fprintf(stderr, "ft_ssl: SHA256: '-d' option invalide option.\n");
-		return (1);
+		return (EXIT_FAILURE);
 	}
 	else if (SHA256Reset(&context))
 	{
 		fprintf(stderr, "ft_ssl: sha256: Reset err\n");
-		return (1);
+		return (EXIT_FAILURE);
 	}
 	else if (SHA256Input(&context, (const uint8_t *)to_hash, strlen(to_hash)))
 	{
 		fprintf(stderr, "ft_ssl: sha256: Input err\n");
-		return (1);
+		return (EXIT_FAILURE);
 	}
 	else if (SHA256Result(&context, (uint8_t *)digest))
 	{
 		fprintf(stderr, "ft_ssl: sha256: Result err\n");
-		return (1);
+		return (EXIT_FAILURE);
 	}
 	// display(digest, data, to_hash);
-	return (0);
+	return (EXIT_SUCCESS);
 }

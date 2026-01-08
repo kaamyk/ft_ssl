@@ -40,5 +40,17 @@ void	exit_err_mess_opt(const char *mess, const char *opt, t_data *data, const ui
 bool	ret_err_mess_code(const char *mess, const int errnum)
 {
 	fprintf(stderr, "%s: %s(%d)\n", mess, strerror(errnum), errnum);
-	return (1);
+	return (EXIT_FAILURE);
+}
+
+bool	ret_err_mess(const char *mess)
+{
+	fprintf(stderr, "%s\n", mess);
+	return (EXIT_FAILURE);
+}
+
+bool	ret_err_mess_opt(const char *mess, const char *opt)
+{
+	fprintf(stderr, mess, opt);
+	return (EXIT_FAILURE);
 }

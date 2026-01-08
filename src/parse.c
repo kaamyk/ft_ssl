@@ -22,9 +22,9 @@ bool	dgst_set_option(char *runner, uint16_t *options)
 			*options |= USAGE;
 			break ;
 		default:
-			return (1);
+			return (ret_err_mess_opt("ft_ssl: invalid options '%s'. Run \"./ft_ssl -h\" for usage.", runner));
 	}
-	return (0);
+	return (EXIT_SUCCESS);
 }
 
 bool	dgst_parser(t_data *data, char **argv)
@@ -66,7 +66,7 @@ bool	dgst_parser(t_data *data, char **argv)
 		exit_err_mess("ft_ssl: no agorithm. Run \"./ft_ssl -h\" for usage\n", data, EX_USAGE);
 	if (runner && *runner)
 		data->inputs = runner;
-	return (0);
+	return (EXIT_SUCCESS);
 }
 
 	/* === CIPHER === */

@@ -105,6 +105,8 @@ void	exit_err_mess(const char *mess, t_data *data, const uint8_t ret_value);
 void	exit_err_mess_code(const char *mess, const int errnum, t_data *data, const uint8_t ret_value);
 void	exit_err_mess_opt(const char *mess, const char *opt, t_data *data, const uint8_t ret_value);
 bool	ret_err_mess_code(const char *mess, const int errnum);
+bool	ret_err_mess(const char *mess);
+bool	ret_err_mess_opt(const char *mess, const char *opt);
 
 //	utils.c
 uint32_t	rotate_left(uint8_t bits, uint32_t word);

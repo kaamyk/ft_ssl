@@ -3,15 +3,15 @@
 bool	dgst_setup(t_data *data, char **argv)
 {
 	if (dgst_parser(data, argv))
-		return (1);
+		return (EXIT_FAILURE);
 	if ((!data->inputs || (data->options & (PRINT))) && is_in_pipe())
 	{
 		data->options |= READ_IN;
 		data->in = read_stdin();
 		if (data->in == NULL)
-			return (1);
+			return (EXIT_FAILURE);
 	}
-	return (0);
+	return (EXIT_SUCCESS);
 }
 
 void	dgst_launch_algo(t_data *data)
@@ -37,5 +37,5 @@ bool	dgst_main(t_data *data, char **argv)
 		dgst_launch_algo(data);
 	if (data->in)
 		free(data->in);
-	return (0);
+	return (EXIT_SUCCESS);
 }

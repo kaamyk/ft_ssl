@@ -229,7 +229,7 @@ bool	MDMain(t_data *data)
 			exit_err_code(data, EX_OSERR);
 	}
 	if (!runner)
-		return (0);
+		return (EXIT_SUCCESS);
 	while (*runner)
 	{
 		if (data->options & STRING)
@@ -248,5 +248,5 @@ bool	MDMain(t_data *data)
 		free(to_hash);
 		++runner;
 	}
-	return (0);
+	return (EXIT_SUCCESS);
 }
