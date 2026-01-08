@@ -123,8 +123,6 @@ bool	is_in_pipe( void );
 //	display.c
 void	print_usage(t_data *data);
 bool	dgst_display(const uint8_t digest[16], uint16_t options, const char *filename, const char *to_hash, const char *algoname, const uint8_t hssz);
-// bool	MDDisplay(const uint8_t digest[16], uint16_t options, const char *name, const char *to_hash);
-// void	SHADisplay(const uint8_t digest[16], uint16_t options, const char *name, const char *to_hash);
 
 // ft_strjoin.c
 char	*ft_strjoin(char const *s1, char const *s2);

@@ -6,8 +6,6 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	int		t_len;
 	int		i;
 
-		// if (!s1 || !s2)
-		// 	return (NULL);
 	if (s1 != NULL && s2 == NULL)
 		t_len = strlen(s1) + 1;
 	else if (s1 == NULL && s2 != NULL)
