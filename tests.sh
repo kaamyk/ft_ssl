@@ -92,7 +92,6 @@ echo '53d53ea94217b259c11a5a2d104ec58a file'
 echo 'ft_ssl: md5: -s: No such file or directory'
 echo 'ft_ssl: md5: bar: No such file or directory'
 echo '================================='
-exit
 
 echo 'echo "just to be extra clear" | ./ft_ssl md5 -r -q -p -s "foo" file'
 echo "just to be extra clear" | valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes -q ./ft_ssl md5 -r -q -p -s "foo" file

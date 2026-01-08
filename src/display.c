@@ -26,12 +26,12 @@ bool	stdin_header_display(const uint8_t options, const char *to_hash)
 		if (write(STDOUT_FILENO, "(\"", 2) < 0 \
 			|| write(STDOUT_FILENO, to_hash, to_print_size) < 0 \
 			|| write(STDOUT_FILENO, "\")= ", 4) < 0)
-		return (EXIT_FAILURE);
+		return (ret_err_mess_code("ft_ssl: write() :", errno));
 	}
 	else
 	{
 		if (write(STDOUT_FILENO, "(stdin)= ", 10) < 0)
-			return (ret_err_mess_code("ft_ssl: ", errno));
+			return (ret_err_mess_code("ft_ssl: write():", errno));
 	}
 	return (EXIT_SUCCESS);
 }
@@ -50,7 +50,6 @@ bool	header_display(const uint8_t options, const char *name , const char *to_has
 	}
 	else
 		return (ret_err_mess("ft_ssl: unexpected NULL pointer. Leaving."));
-	fflush(stdout);
 	return (EXIT_SUCCESS);
 }
 
@@ -68,20 +67,19 @@ bool	footer_display(const char *name, const char *to_hash)
 	}
 	else
 		return (ret_err_mess("ft_ssl: unexpected NULL pointer. Leaving."));
-	fflush(stdout);
 	return (EXIT_SUCCESS);
 }
 
 bool	dgst_display(const uint8_t digest[16], uint16_t options, const char *filename, const char *to_hash, const char *algoname, const uint8_t hssz)
 {
-	if (!(options & QUIET))
+	if ((options & (READ_IN | REVERSE | QUIET)) == READ_IN)
 	{
 		if (write(STDOUT_FILENO, algoname, strlen(algoname)) < 0)
 			return (ret_err_mess_code("ft_ssl: fatal error:", errno));
 		if ((options & READ_IN))
 		{
 			if (stdin_header_display(options, to_hash))
-				return (ret_err_mess_code("ft_ssl: fatal error:", errno));
+				return (EXIT_FAILURE);
 		}
 		else if (!(options & (REVERSE)))
 		{
@@ -95,6 +93,7 @@ bool	dgst_display(const uint8_t digest[16], uint16_t options, const char *filena
 	if (((options & (REVERSE | READ_IN)) == REVERSE)
 		&& footer_display(filename, to_hash))
 			return (EXIT_FAILURE);
+	fflush(stdout);
 	if (write (STDOUT_FILENO, "\n", 1) < 0)
 		return (ret_err_mess_code("ft_ssl: fatal error:", errno));
 	return (EXIT_SUCCESS);
