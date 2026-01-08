@@ -83,6 +83,17 @@ echo 'ft_ssl: md5: -s: No such file or directory'
 echo 'ft_ssl: md5: bar: No such file or directory'
 echo '================================='
 
+echo 'cat src/md5.c | ./ft_ssl md5 -r -p -s "foo" file -s "bar"'
+cat src/md5.c | valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes -q ./ft_ssl md5 -r -p -s "foo" file -s "bar"
+echo '------'
+cat src/md5.c | openssl md5 
+echo 'acbd18db4cc2f85cedef654fccc4a4d8 "foo"'
+echo '53d53ea94217b259c11a5a2d104ec58a file'
+echo 'ft_ssl: md5: -s: No such file or directory'
+echo 'ft_ssl: md5: bar: No such file or directory'
+echo '================================='
+exit
+
 echo 'echo "just to be extra clear" | ./ft_ssl md5 -r -q -p -s "foo" file'
 echo "just to be extra clear" | valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes -q ./ft_ssl md5 -r -q -p -s "foo" file
 echo '------'
