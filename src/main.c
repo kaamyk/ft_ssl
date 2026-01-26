@@ -21,10 +21,7 @@ int main( int argc, char **argv )
 	if (argv && *argv && *(argv + 1) && **(argv + 1) != '-')
 		data.algo = *(argv + 1);
 	else
-	{
-		print_usage(&data);
-		return (EX_USAGE);
-	}
+		exit_err_mess("ft_ssl: invalid algorithm. Run './ft_ssl -h' for usage\n", &data, EX_USAGE);
 	for (uint8_t i = 0; cmds[i].name; i++)
 	{
 		if (!strcmp(cmds[i].name, data.algo))
@@ -33,7 +30,7 @@ int main( int argc, char **argv )
 	if (data.in)
 		free(data.in);
 	if (data.algo)
-		exit_err_mess_opt("ft_ssl: '%s': Unvalid argument. Run './ft_ssl -h' for usage\n", data.algo, &data, EX_USAGE);
+		exit_err_mess_opt("ft_ssl: '%s': invalid argument. Run './ft_ssl -h' for usage\n", data.algo, &data, EX_USAGE);
 	else
 		exit_err_mess("ft_ssl: no algorithm given. Run './ft_ssl -h' for usage\n", &data, EX_USAGE);
 }

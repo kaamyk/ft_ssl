@@ -30,6 +30,7 @@ bool	dgst_set_option(char *runner, uint16_t *options)
 bool	dgst_parser(t_data *data, char **argv)
 {
 	char	**runner = argv + 1;
+	char	*stdin = NULL;
 	bool	algo = 0;
 	
 	//	-- ALGORITHM --
@@ -56,13 +57,12 @@ bool	dgst_parser(t_data *data, char **argv)
 		data->options &= ~(PRINT);
 	if (data->options & (STRING))
 	{
-		data->inputs = runner;
-		if (!data->inputs)
+		if (!*runner)
 			exit_err_mess("ft_ssl: '-s' options gets a invalid argument. Run './ft_ssl -h' for usage.\n", data, EX_USAGE);
 	}
 	if (!algo && !(data->options & USAGE))
 		exit_err_mess("ft_ssl: no agorithm. Run \"./ft_ssl -h\" for usage\n", data, EX_USAGE);
-	if (runner && *runner)
+	if (*runner)
 		data->inputs = runner;
 	return (EXIT_SUCCESS);
 }

@@ -22,9 +22,13 @@ bool	stdin_header_display(const uint8_t options, const char *to_hash)
 	if (options & PRINT)
 	{
 		if (write(STDOUT_FILENO, "(\"", 2) < 0 \
-			|| write(STDOUT_FILENO, to_hash, to_print_size) < 0 \
-			|| write(STDOUT_FILENO, "\")= ", 4) < 0)
-		return (ret_err_mess_code("ft_ssl: write() :", errno));
+			|| write(STDOUT_FILENO, to_hash, to_print_size) < 0)
+			return (ret_err_mess_code("ft_ssl: write() :", errno));
+		if ((nl - to_hash > 40 || nl) 
+			 && write(STDOUT_FILENO, "...", 3) < 0)
+			return (ret_err_mess_code("ft_ssl: write() :", errno));
+		if (write(STDOUT_FILENO, "\")= ", 4) < 0)
+			return (ret_err_mess_code("ft_ssl: write() :", errno));
 	}
 	else
 	{

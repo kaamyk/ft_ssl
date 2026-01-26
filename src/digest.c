@@ -4,7 +4,8 @@ bool	dgst_setup(t_data *data, char **argv)
 {
 	if (dgst_parser(data, argv))
 		return (EXIT_FAILURE);
-	if ((!data->inputs || (data->options & (PRINT))) && is_in_pipe())
+	if ((!data->inputs && (data->options & ~(ENCODE | DECODE | PRINT)) == 0)
+		|| ((!data->inputs || (data->options & (PRINT))) && is_in_pipe()))
 	{
 		data->options |= READ_IN;
 		if ((data->in = read_stdin()) == NULL)
@@ -13,6 +14,27 @@ bool	dgst_setup(t_data *data, char **argv)
 	return (EXIT_SUCCESS);
 }
 
+// bool	dgst_stdin(t_data *data, t_algo_fn f)
+// {
+// 	char	*strin = NULL;
+// 	char	buf[256] = {0};
+	
+// 	while (fgets(buf, 255, stdin))
+// 	{
+// 		strin = ft_strjoin(strin, buf);
+// 		bzero(buf, 256);
+// 	}
+// 	data->inputs = ft_split(strin, '\n');
+// 	while (*data->inputs)
+// 	{
+// 		if (f(data, *data->inputs, *data->inputs))
+// 			exit_err_code(data, EX_OSERR);
+// 		++data->inputs;
+// 	}
+// 	free(strin);
+// 	return (EXIT_SUCCESS);
+// }
+
 bool	dgst_exec(t_data *data, t_algo_fn f)
 {
 	char		**runner = data->inputs;
@@ -20,8 +42,13 @@ bool	dgst_exec(t_data *data, t_algo_fn f)
 	
 	if (data->options & READ_IN)
 	{
-		if (f(data, "stdin", data->in))
-			exit_err_code(data, EX_OSERR);
+		if (data->in)
+		{
+			if (f(data, "stdin", data->in))
+				exit_err_code(data, EX_OSERR);
+		}
+		// else
+		// 	return (dgst_stdin(data, f));
 		data->options &= ~(READ_IN);
 	}
 	if (!runner)
