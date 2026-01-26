@@ -18,10 +18,18 @@ int main( int argc, char **argv )
 		print_usage(&data);
 		return (EX_USAGE);
 	}
-	if (argv && *argv && *(argv + 1) && **(argv + 1) != '-')
-		data.algo = *(argv + 1);
-	else
+	if (argv && *argv && *(argv + 1))
+	{
+		if (**(argv + 1) != '-')
+			data.algo = *(argv + 1);
+		else if (!strcmp(*(argv + 1), "-h"))
+		{
+			print_usage(&data);
+			return (0);
+		}
+		else
 		exit_err_mess("ft_ssl: invalid algorithm. Run './ft_ssl -h' for usage\n", &data, EX_USAGE);
+	}
 	for (uint8_t i = 0; cmds[i].name; i++)
 	{
 		if (!strcmp(cmds[i].name, data.algo))

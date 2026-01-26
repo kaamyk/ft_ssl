@@ -35,7 +35,7 @@ bool	dgst_parser(t_data *data, char **argv)
 	
 	//	-- ALGORITHM --
 	if (runner == NULL || *runner == NULL)
-		exit_err_mess("ft_ssl: No argument. Run './ft_ssl -h' for usage.\n", data, EX_USAGE);
+		exit_err_mess("ft_ssl: no argument. Run './ft_ssl -h' for usage.\n", data, EX_USAGE);
 	else if (**runner != '-')
 	{
 		data->algo = *(runner++);
@@ -53,8 +53,8 @@ bool	dgst_parser(t_data *data, char **argv)
 		}
 		++runner;
 	}
-	if (data->options & (QUIET))
-		data->options &= ~(PRINT);
+	// if (data->options & (QUIET))
+	// 	data->options &= ~(PRINT);
 	if (data->options & (STRING))
 	{
 		if (!*runner)

@@ -24,7 +24,7 @@ bool	stdin_header_display(const uint8_t options, const char *to_hash)
 		if (write(STDOUT_FILENO, "(\"", 2) < 0 \
 			|| write(STDOUT_FILENO, to_hash, to_print_size) < 0)
 			return (ret_err_mess_code("ft_ssl: write() :", errno));
-		if ((nl - to_hash > 40 || nl) 
+		if ((nl - to_hash > 40 || (nl && *(nl + 1))) 
 			 && write(STDOUT_FILENO, "...", 3) < 0)
 			return (ret_err_mess_code("ft_ssl: write() :", errno));
 		if (write(STDOUT_FILENO, "\")= ", 4) < 0)
@@ -74,25 +74,30 @@ bool	footer_display(const char *name, const char *to_hash)
 
 bool	dgst_display(const uint8_t digest[16], uint16_t options, const char *filename, const char *to_hash, const char *algoname, const uint8_t hssz)
 {
-	if (!(options & (REVERSE | QUIET)))
+	// options = (options & ~(ENCODE | DECODE));
+	if (!(options & QUIET))
 	{
-		if (write(STDOUT_FILENO, algoname, strlen(algoname)) < 0)
-			return (ret_err_mess_code("ft_ssl: fatal error:", errno));
-		if ((options & READ_IN))
+		if (!(options & (REVERSE)) || (options & READ_IN))
+		// if (!(options & (REVERSE | QUIET)))
 		{
-			if (stdin_header_display(options, to_hash))
-				return (EXIT_FAILURE);
-		}
-		else if (!(options & (REVERSE)))
-		{
-			if (header_display(options, filename, to_hash))
-				return (EXIT_FAILURE);
-		}
+			if (write(STDOUT_FILENO, algoname, strlen(algoname)) < 0)
+				return (ret_err_mess_code("ft_ssl: fatal error:", errno));
+			if (options & (READ_IN))
+			{
+				if (stdin_header_display(options, to_hash))
+					return (EXIT_FAILURE);
+			}
+			else if (!(options & (REVERSE)))
+			{
+				if (header_display(options, filename, to_hash))
+					return (EXIT_FAILURE);
+			}
+		}	
 	}
 	for (uint8_t i = 0; i < hssz; i++)
 		if (printf ("%02x", digest[i]) < 0)
 			return (ret_err_mess_code("ft_ssl: fatal error:", errno));
-	if (((options & (REVERSE | READ_IN)) == REVERSE)
+	if (((options & (REVERSE | READ_IN | QUIET)) == REVERSE)
 		&& footer_display(filename, to_hash))
 			return (EXIT_FAILURE);
 	fflush(stdout);

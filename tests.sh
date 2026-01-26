@@ -71,7 +71,8 @@ echo '================================='
 echo 'echo "GL HF lets go" | ./ft_ssl md5 -p -s "foo" file'
 echo "GL HF lets go" | valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes -q ./ft_ssl md5 -p -s "foo" file
 echo '------'
-echo '("GL HF lets go")= d1e3cc342b6da09480b27ec57ff243e2'
+
+echo '("GL HF lets go")= ab19110163d4af9f29d2181ba46a6c3a'
 echo 'md5 ("foo") = acbd18db4cc2f85cedef654fccc4a4d8'
 echo 'md5 (file) = 53d53ea94217b259c11a5a2d104ec58a'
 echo '================================='
