@@ -2,10 +2,8 @@
 
 void	print_usage(t_data *data)
 {
-	if (write(STDOUT_FILENO, "ft_ssl usage:\n\t[string | ]./ft_ssl algorithm [options] [-s \"string\"] arguments\nalgorithm values : selects the hash algorithm to run\n\tsha256\n\tmd5\noptions: \n\tsets the display format :\n\t\t-p : print stdin to stdout and append the checksum to stdout. Truncated if length greater than 40 bytes or at the first new line\n\t\t-q : quiet mode\n\t\t-r : reverse the format of the ouput\n\t-s : print the sum of the given string. Any argument after this option is consider as a string. Each argument after the string is consider as a filename (see arguments section).\n\t-h : print usage\narguments :\n\t Each is considered has a file name. The command tries to open each file, if it fails it goes on.\n", 679) < 0)
+	if (write(STDOUT_FILENO, "ft_ssl usage:\n\t[string | ]./ft_ssl algorithm [options] [-s \"string\"] arguments\nalgorithm values : selects the hash algorithm to run\n\tsha256\n\tmd5\noptions: \n\t-s : print the sum of the given string. Any argument after this option is consider as a string. Each argument after the string is consider as a filename (see arguments section).\n\t-h : print usage\n\t-p : print stdin to stdout and append the checksum to stdout. Truncated if length greater than 40 bytes or at the first new line\n\t-q : quiet mode\n\t-r : reverse the format of the ouput\n\targuments :\n\t Each is considered has a file name. The command tries to open each file, if it fails it goes on.\n", 650) < 0)
 		exit_err_mess_code("Fatal error: write(): %s (%d)\n", errno, data, EX_OSERR);
-	
-	return ;
 }
 
 bool	stdin_header_display(const uint8_t options, const char *to_hash)

@@ -14,7 +14,10 @@ int main( int argc, char **argv )
 	
 	
 	if (argc < 2)
+	{
 		print_usage(&data);
+		return (EX_USAGE);
+	}
 	if (argv && *argv && *(argv + 1) && **(argv + 1) != '-')
 		data.algo = *(argv + 1);
 	else
