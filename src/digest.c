@@ -14,27 +14,6 @@ bool	dgst_setup(t_data *data, char **argv)
 	return (EXIT_SUCCESS);
 }
 
-// bool	dgst_stdin(t_data *data, t_algo_fn f)
-// {
-// 	char	*strin = NULL;
-// 	char	buf[256] = {0};
-	
-// 	while (fgets(buf, 255, stdin))
-// 	{
-// 		strin = ft_strjoin(strin, buf);
-// 		bzero(buf, 256);
-// 	}
-// 	data->inputs = ft_split(strin, '\n');
-// 	while (*data->inputs)
-// 	{
-// 		if (f(data, *data->inputs, *data->inputs))
-// 			exit_err_code(data, EX_OSERR);
-// 		++data->inputs;
-// 	}
-// 	free(strin);
-// 	return (EXIT_SUCCESS);
-// }
-
 bool	dgst_exec(t_data *data, t_algo_fn f)
 {
 	char		**runner = data->inputs;

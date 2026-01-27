@@ -107,6 +107,7 @@ void	exit_err_mess_opt(const char *mess, const char *opt, t_data *data, const ui
 bool	ret_err_mess_code(const char *mess, const int errnum);
 bool	ret_err_mess(const char *mess);
 bool	ret_err_mess_opt(const char *mess, const char *opt);
+void	exit_err_mess_opt2(const char *mess, const char *opt, const char *opt1, t_data *data, const uint8_t ret_value);
 
 //	utils.c
 uint32_t	rotate_left(uint8_t bits, uint32_t word);
@@ -121,7 +122,9 @@ char 	*read_stdin( void );
 bool	is_in_pipe( void );
 
 //	display.c
-void	print_usage(t_data *data);
+void	print_ssl_usage(t_data *data);
+void	print_dgst_usage(t_data *data);
+void	print_cphr_usage(t_data *data);
 bool	dgst_display(const uint8_t digest[16], uint16_t options, const char *filename, const char *to_hash, const char *algoname, const uint8_t hssz);
 
 // ft_strjoin.c
@@ -129,6 +132,7 @@ char	*ft_strjoin(char const *s1, char const *s2);
 
 //	parser.c
 bool	dgst_parser(t_data *data, char **argv);
+bool	cphr_parser(t_data *data, char **argv);
 
 //	sha256.c
 extern int		SHA256Reset(t_SHA256_CTX *);
@@ -151,7 +155,7 @@ bool	MDRoutine(const t_data *data, const char *runner, const char *to_hash);
 //	base64.c
 char	*base64_encode(const char *input);
 char	*base64_decode(const char *input);
-bool 	B64String(const t_data *data);
+bool 	B64Routine(const t_data *data, const char *runner, const char *to_hash);
 
 //	routine.c
 void	routine(t_data *data);
@@ -162,6 +166,9 @@ bool	is_in_pipe( void );
 
 //	digest.c
 bool	dgst_main(t_data *data, char **argv);
+
+//	cipher.c
+bool	cphr_main(t_data *data, char **argv);
 
 //	main.c
 #endif

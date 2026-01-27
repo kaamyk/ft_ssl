@@ -9,13 +9,13 @@ int main( int argc, char **argv )
 	static const t_cmd	cmds[] = {
 		{"md5", dgst_main}, 
 		{"sha256", dgst_main},
+		{"base64", cphr_main},
 		{NULL, NULL}
 	};
 	
-	
 	if (argc < 2)
 	{
-		print_usage(&data);
+		print_ssl_usage(&data);
 		return (EX_USAGE);
 	}
 	if (argv && *argv && *(argv + 1))
@@ -24,11 +24,11 @@ int main( int argc, char **argv )
 			data.algo = *(argv + 1);
 		else if (!strcmp(*(argv + 1), "-h"))
 		{
-			print_usage(&data);
+			print_ssl_usage(&data);
 			return (0);
 		}
 		else
-		exit_err_mess("ft_ssl: invalid algorithm. Run './ft_ssl -h' for usage\n", &data, EX_USAGE);
+			exit_err_mess("ft_ssl: invalid algorithm. Run './ft_ssl -h' for usage\n", &data, EX_USAGE);
 	}
 	for (uint8_t i = 0; cmds[i].name; i++)
 	{

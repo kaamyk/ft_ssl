@@ -1,9 +1,21 @@
 #include "../inc/main.h"
 
-void	print_usage(t_data *data)
+void	print_ssl_usage(t_data *data)
 {
-	if (write(STDOUT_FILENO, "ft_ssl usage:\n\t[string | ]./ft_ssl algorithm [options] [-s \"string\"] arguments\nalgorithm values : selects the hash algorithm to run\n\tsha256\n\tmd5\noptions: \n\t-s : print the sum of the given string. Any argument after this option is consider as a string. Each argument after the string is consider as a filename (see arguments section).\n\t-h : print usage\n\t-p : print stdin to stdout and append the checksum to stdout. Truncated if length greater than 40 bytes or at the first new line\n\t-q : quiet mode\n\t-r : reverse the format of the ouput\n\targuments :\n\t Each is considered has a file name. The command tries to open each file, if it fails it goes on.\n", 650) < 0)
+	if (write(STDOUT_FILENO, "ft_ssl usage:\n\t[string | ]./ft_ssl algorithm [-options arguments] arguments\nType './ft_ssl algoname -h' for specific algorithm usage\nalgorithm values : selects the hash algorithm to run\n\tDigest:\n\t\tsha256\n\t\tmd5\n\tCipher:\n\t\tbase64\n\toptions\n\t\t-h : print usage\n", 257) < 0)	
 		exit_err_mess_code("Fatal error: write(): %s (%d)\n", errno, data, EX_OSERR);
+}
+
+void	print_dgst_usage(t_data *data)
+{
+	if (write(STDOUT_FILENO, "ft_ssl digest usage:\n\t[string | ]./ft_ssl algorithm [options] [-s \"string\"] arguments\nalgorithm values : selects the hash algorithm to run\n\tsha256\n\tmd5\noptions: \n\t-s : print the sum of the given string. Any argument after this option is consider as a string. Each argument after the string is consider as a filename (see arguments section).\n\t-h : print usage\n\t-p : print stdin to stdout and append the checksum to stdout. Truncated if length greater than 40 bytes or at the first new line\n\t-q : quiet mode\n\t-r : reverse the format of the ouput\n\targuments :\n\t Each is considered has a file name. The command tries to open each file, if it fails it goes on.\n", 650) < 0)
+		exit_err_mess_code("Fatal error: write(): %s (%d)\n", errno, data, EX_OSERR);
+}
+
+void	print_cphr_usage(t_data *data)
+{
+	if (write(STDOUT_FILENO, "ft_ssl ciphers usage:\n\t[string | ]./ft_ssl ciphername [options] [-s \"string\"] arguments\n\tciphername : selects the cipher algorithm to run\n\t\tBase64\noptions: \n\t\t-i filename: selects 'filename' as an input file\n\t\t-o filename: command's output will be written in 'filename'\n\t\t-d : decode the input\n\t\t-e : encode the input\n", 319) < 0)
+	exit_err_mess_code("Fatal error: write(): %s (%d)\n", errno, data, EX_OSERR);
 }
 
 bool	stdin_header_display(const uint8_t options, const char *to_hash)

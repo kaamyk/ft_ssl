@@ -5,7 +5,8 @@ NAME	=	ft_ssl
 SRCDIR	=	src
 SRCS	=	$(SRCDIR)/main.c		$(SRCDIR)/parse.c	$(SRCDIR)/sha256.c	$(SRCDIR)/md5.c	\
 			$(SRCDIR)/routine.c 	$(SRCDIR)/utils.c	$(SRCDIR)/error.c	$(SRCDIR)/ft_strjoin.c \
-			$(SRCDIR)/stdin.c		$(SRCDIR)/digest.c	$(SRCDIR)/display.c	
+			$(SRCDIR)/stdin.c		$(SRCDIR)/digest.c	$(SRCDIR)/cipher.c	$(SRCDIR)/display.c \
+			$(SRCDIR)/base64.c
 			
 DEPDIR	=	.dep
 DEPS	=	$(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.d, $(SRCS))

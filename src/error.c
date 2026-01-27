@@ -37,6 +37,13 @@ void	exit_err_mess_opt(const char *mess, const char *opt, t_data *data, const ui
 	exit (ret_value);
 }
 
+void	exit_err_mess_opt2(const char *mess, const char *opt, const char *opt1, t_data *data, const uint8_t ret_value)
+{
+	exit_free(data);
+	fprintf(stderr, mess, opt, opt1);
+	exit (ret_value);
+}
+
 bool	ret_err_mess_code(const char *mess, const int errnum)
 {
 	fprintf(stderr, "%s: %s(%d)\n", mess, strerror(errnum), errnum);
