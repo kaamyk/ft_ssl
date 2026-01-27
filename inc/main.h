@@ -126,6 +126,7 @@ void	print_ssl_usage(t_data *data);
 void	print_dgst_usage(t_data *data);
 void	print_cphr_usage(t_data *data);
 bool	dgst_display(const uint8_t digest[16], uint16_t options, const char *filename, const char *to_hash, const char *algoname, const uint8_t hssz);
+bool	cphr_display(char *cipher);
 
 // ft_strjoin.c
 char	*ft_strjoin(char const *s1, char const *s2);

@@ -112,17 +112,23 @@ bool	dgst_parser(t_data *data, char **argv)
 				print_cphr_usage(data);
 				exit_err_code(data, EXIT_SUCCESS);
 			}
-			else if ((data->options) & IN_FILE && !data->in_file)
+			else if (data->options & IN_FILE)
 			{
 				if (*(runner + 1) && **(runner + 1) != '-')
+				{
 					data->in_file = *(++runner);
+					data->options &= ~(IN_FILE);
+				}
 				else
 					exit_err_mess_opt("ft_ssl: '%s': invalid argument. Run './ft_ssl -h for usage.", *runner, data, EX_USAGE);
 			}
-			else if ((data->options & OUT_FILE) && !data->out_file)
+			else if (data->options & OUT_FILE)
 			{
 				if (*(runner + 1) && **(runner + 1) != '-')
+				{
 					data->out_file = *(++runner);
+					data->options &= ~(OUT_FILE);
+				}
 				else
 					exit_err_mess_opt2("ft_ssl: '%s': invalid argument. Run './ft_ssl %s -h for usage.", *runner, data->algo, data, EX_USAGE);
 			}

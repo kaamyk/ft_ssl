@@ -89,8 +89,8 @@ char	*base64_decode(const char *input)
 
 bool 	B64Routine(const t_data *data, const char *runner, const char *to_hash)
 {
+	printf("> B64ROUTINE\n");
 	(void)runner;
-	printf("B64String(options, %s, %s)\n", data->out_file, to_hash);
 	char	*res = NULL;
 	
 	if (data->options & DECODE)
@@ -99,8 +99,8 @@ bool 	B64Routine(const t_data *data, const char *runner, const char *to_hash)
 		res = base64_encode(to_hash);
 	else
 		res = strdup(to_hash);
-	/* A CHANGER */
-	// dgst_display((const uint8_t *)res, data, to_hash);
+	if (cphr_display(res))
+		return (EXIT_FAILURE);
 	free(res);
 	return (EXIT_SUCCESS);
 }
