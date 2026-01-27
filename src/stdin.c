@@ -22,7 +22,6 @@ char 	*read_stdin( void )
 		free(tmp);
 		bzero((char *) buf, 256);
 	}
-	printf("STDIN == [%s]\n", input);
 	return (input);
 }
 
