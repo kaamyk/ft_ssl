@@ -2,8 +2,9 @@
 
 bool	cphr_setup(t_data *data, char **argv)
 {
-	size_t i = 0;
-	size_t j = 0;
+	size_t	i = 0;
+	size_t	j = 0;
+	size_t	len = 0;
 	
 	data->options |= ENCODE;
 	if (cphr_parser(data, argv))
@@ -13,7 +14,8 @@ bool	cphr_setup(t_data *data, char **argv)
 		data->options |= READ_IN;
 		if ((data->in = read_stdin()) == NULL)
 			return (ret_err_mess_code("ft_ssl: fatal error: %s\n", errno));
-		while (data->in[j])
+		len = strlen(data->in);
+		while (j < len - 1)
 		{
 			while (data->in[j] && is_whitespace(data->in[j]))
 				++j;
@@ -22,7 +24,7 @@ bool	cphr_setup(t_data *data, char **argv)
 			++j;
 		}
 		bzero(data->in + i, j - i);
-		// printf("data->in == [%s]\n", data->in);
+		printf("data->in == [%s]\n", data->in);
 	}
 	return (EXIT_SUCCESS);
 }
