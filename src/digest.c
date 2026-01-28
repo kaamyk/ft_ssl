@@ -4,8 +4,10 @@ bool	dgst_setup(t_data *data, char **argv)
 {
 	if (dgst_parser(data, argv))
 		return (EXIT_FAILURE);
-	if ((!data->inputs && (data->options & ~(ENCODE | DECODE | PRINT)) == 0)
-		|| ((!data->inputs || (data->options & (PRINT))) && is_in_pipe()))
+	// if ((!data->inputs && !(data->options & ~(PRINT)))
+	// 	|| ((!data->inputs || (data->options & (PRINT))) && is_in_pipe()))
+	if ( (!data->inputs && !(data->options & ~(PRINT)))
+		|| (data->inputs && (data->options & PRINT)))
 	{
 		data->options |= READ_IN;
 		if ((data->in = read_stdin()) == NULL)
@@ -26,8 +28,6 @@ bool	dgst_exec(t_data *data, t_algo_fn f)
 			if (f(data, "stdin", data->in))
 				exit_err_code(data, EX_OSERR);
 		}
-		// else
-		// 	return (dgst_stdin(data, f));
 		data->options &= ~(READ_IN);
 	}
 	if (!runner)

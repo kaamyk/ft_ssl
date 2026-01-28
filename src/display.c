@@ -18,6 +18,10 @@ void	print_cphr_usage(t_data *data)
 	exit_err_mess_code("Fatal error: write(): %s (%d)\n", errno, data, EX_OSERR);
 }
 
+/* ================= */
+/* 		DIGEST		 */
+/* ================= */
+
 bool	stdin_header_display(const uint8_t options, const char *to_hash)
 {
 	size_t	to_print_size = strlen(to_hash);
@@ -118,13 +122,17 @@ bool	dgst_display(const uint8_t digest[16], uint16_t options, const char *filena
 	return (EXIT_SUCCESS);
 }
 
+/* ================= */
+/* 		CIPHER		 */
+/* ================= */
+
 bool	cphr_display(char *cipher)
 {
 	char	*runner = cipher;
 	char	*last = 0;
 	
 	if (runner)
-		last = runner + strlen(cipher) - 1;
+		last = runner + strlen(cipher);
 	else
 		return (EXIT_FAILURE);
 	while (*runner && last - runner >= 64)

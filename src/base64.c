@@ -89,7 +89,6 @@ char	*base64_decode(const char *input)
 
 bool 	B64Routine(const t_data *data, const char *runner, const char *to_hash)
 {
-	printf("> B64ROUTINE\n");
 	(void)runner;
 	char	*res = NULL;
 	

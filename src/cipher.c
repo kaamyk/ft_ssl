@@ -2,6 +2,7 @@
 
 bool	cphr_setup(t_data *data, char **argv)
 {
+	data->options |= ENCODE;
 	if (cphr_parser(data, argv))
 		return (EXIT_FAILURE);
 	if (!(data->options | (DECODE | ENCODE)))

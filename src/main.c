@@ -3,9 +3,7 @@
 int main( int argc, char **argv )
 {
 	(void) argc;
-	t_data	data = {
-		.options = ENCODE
-	};
+	t_data	data = {0};
 	static const t_cmd	cmds[] = {
 		{"md5", dgst_main}, 
 		{"sha256", dgst_main},

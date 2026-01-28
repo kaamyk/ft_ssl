@@ -59,7 +59,9 @@ bool	dgst_parser(t_data *data, char **argv)
 	return (EXIT_SUCCESS);
 }
 
+	/* ============== */
 	/* === CIPHER === */
+	/* ============== */
 	
 	bool	cphr_set_option(char *runner, uint16_t *options)
 	{
@@ -138,7 +140,5 @@ bool	dgst_parser(t_data *data, char **argv)
 			exit_err_mess("ft_ssl: no agorithm. Run \"./ft_ssl -h\" for usage\n", data, EX_USAGE);
 		if (*runner)
 			data->inputs = runner;
-		printf("CIPHER SETUP :\n\tIn file: %s\n\tOut file: %s\n\tOptions:\n\t\tDecode: %d\n\t\tEncode: %d\n\t\tInfile: %d\n\t\tOutfile: %d\n",
-				data->in_file, data->out_file, data->options & DECODE, data->options & ENCODE, data->options & IN_FILE, data->options & OUT_FILE);
 		return (EXIT_SUCCESS);
 	}
