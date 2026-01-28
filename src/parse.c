@@ -79,6 +79,8 @@ bool	dgst_parser(t_data *data, char **argv)
 				*options |= ENCODE;
 				*options &= ~(DECODE);
 				 break;
+			case 'a':
+				*options |= B64; break ;
 			case 'h':
 				*options |= USAGE; break;
 			default :

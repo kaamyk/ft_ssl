@@ -9,13 +9,14 @@ bool	cphr_setup(t_data *data, char **argv)
 	data->options |= ENCODE;
 	if (cphr_parser(data, argv))
 		return (EXIT_FAILURE);
-	if (!(data->options & ~(DECODE | ENCODE)))
+	if (!(data->options & ~(DECODE | ENCODE | B64)))
 	{
 		data->options |= READ_IN;
 		if ((data->in = read_stdin()) == NULL)
 			return (ret_err_mess_code("ft_ssl: fatal error: %s\n", errno));
+		//	-- Delete whitespaces
 		len = strlen(data->in);
-		while (j < len - 1)
+		while (j < len)
 		{
 			while (data->in[j] && is_whitespace(data->in[j]))
 				++j;
@@ -56,6 +57,7 @@ bool	cphr_main(t_data *data, char **argv)
 {
 	static const t_algo	ciphers[] = {
 		{"base64",	B64Routine	},
+		{"des",		DESRoutine	},
 		{NULL,		NULL		}
 	};
 	(void)argv;

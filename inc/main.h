@@ -35,6 +35,7 @@ enum
 	in_file,
 	out_file,
 	read_in,
+	base64
 };
 
 #define DGST	1 << digest
@@ -48,6 +49,7 @@ enum
 #define IN_FILE	1 << in_file
 #define OUT_FILE 1 << out_file
 #define READ_IN	1 << read_in
+#define B64		1 << base64
 
 #define BASE64STR	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 
@@ -158,6 +160,9 @@ bool	MDRoutine(const t_data *data, const char *runner, const char *to_hash);
 char	*base64_encode(const char *input);
 char	*base64_decode(const char *input);
 bool 	B64Routine(const t_data *data, const char *runner, const char *to_hash);
+
+//	des.c
+bool 	DESRoutine(const t_data *data, const char *runner, const char *to_hash);
 
 //	routine.c
 void	routine(t_data *data);

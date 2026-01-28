@@ -8,6 +8,7 @@ int main( int argc, char **argv )
 		{"md5", dgst_main}, 
 		{"sha256", dgst_main},
 		{"base64", cphr_main},
+		{"des", cphr_main},
 		{NULL, NULL}
 	};
 	

@@ -14,7 +14,23 @@ void	print_dgst_usage(t_data *data)
 
 void	print_cphr_usage(t_data *data)
 {
-	if (write(STDOUT_FILENO, "ft_ssl ciphers usage:\n\t[string | ]./ft_ssl ciphername [options] [-s \"string\"] arguments\n\tciphername : selects the cipher algorithm to run\n\t\tBase64\noptions: \n\t\t-i filename: selects 'filename' as an input file\n\t\t-o filename: command's output will be written in 'filename'\n\t\t-d : decode the input\n\t\t-e : encode the input\n", 319) < 0)
+	if (write(STDOUT_FILENO, "ft_ssl ciphers usage:\n\t[string | ]./ft_ssl ciphername [options] [-s \"string\"] arguments\n\
+		\tciphername : selects the cipher algorithm to run\n\
+		\t-h : prints this usage\n\
+		\t\tBase64\n\
+		options: \n\
+		\t\t-i filename: selects 'filename' as an input file\n\
+		\t\t-o filename: command's output will be written in 'filename'\n\
+		\t\t-d : decode the input\n\
+		\t\t-e : encode the input\n\
+		\t\tDES\n\
+		options: \n\
+		\t\t-i filename: selects 'filename' as an input file\n\
+		\t\t-o filename: command's output will be written in 'filename'\n\
+		\t\t-d : decode the input\n\
+		\t\t-e : encode the input\n\
+		\t\t-a : decode/encode using base64\n\
+		", 319) < 0)
 	exit_err_mess_code("Fatal error: write(): %s (%d)\n", errno, data, EX_OSERR);
 }
 
