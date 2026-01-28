@@ -5,6 +5,7 @@ inline uint32_t	rotate_right(uint8_t bits, uint32_t word) { return ((word >> bit
 inline uint32_t	shift_right(uint8_t bits, uint32_t word) { return (word >> bits); }
 
 inline bool		is_whitespace(const char c) { return ((9 <= c && c <= 13) || c == 32); }
+inline bool		is_hexa(const char c) { return ((48 <= c && c <= 57) || (65 <= c && c <= 70)); }
 
 void	decode(uint32_t *output, uint8_t *input, uint32_t len)
 {

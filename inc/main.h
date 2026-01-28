@@ -59,11 +59,12 @@ enum
 
 typedef struct	s_data
 {
-	const char	algostr[3][7];
+	// const char	algostr[3][7];
 	uint16_t	options;
+	char		*algo;
 	char		*in;
 	char		*string;
-	char		*algo;
+	char		*raw_key;
 	char		**inputs;
 	char		*in_file;
 	char		*out_file;
@@ -116,6 +117,7 @@ uint32_t	rotate_left(uint8_t bits, uint32_t word);
 uint32_t	rotate_right(uint8_t bits, uint32_t word);
 uint32_t	shift_right(uint8_t bits, uint32_t word);
 bool		is_whitespace(const char c);
+bool		is_hexa(const char c);
 void	decode(uint32_t *output, uint8_t *input, uint32_t len);
 void	encode(uint8_t *output, uint32_t *input, uint32_t len);
 char	*file_to_str(const char *filename);

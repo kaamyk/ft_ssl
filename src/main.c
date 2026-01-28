@@ -35,7 +35,10 @@ int main( int argc, char **argv )
 			return(cmds[i].fn(&data, argv));
 	}
 	if (data.in)
+	{
+		bzero(&data, sizeof(t_data));
 		free(data.in);
+	}
 	if (data.algo)
 		exit_err_mess_opt("ft_ssl: '%s': invalid argument. Run './ft_ssl -h' for usage\n", data.algo, &data, EX_USAGE);
 	else

@@ -3,7 +3,10 @@
 void	exit_free(t_data *data)
 {
 	if (data->in)
+	{
+		bzero(data, sizeof(t_data));
 		free(data->in);
+	}
 }
 
 void	exit_err_code(t_data *data, const uint8_t ret_value)

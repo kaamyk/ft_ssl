@@ -19,17 +19,18 @@ void	print_cphr_usage(t_data *data)
 		\t-h : prints this usage\n\
 		\t\tBase64\n\
 		options: \n\
-		\t\t-i filename: selects 'filename' as an input file\n\
-		\t\t-o filename: command's output will be written in 'filename'\n\
-		\t\t-d : decode the input\n\
-		\t\t-e : encode the input\n\
+		\t\t-i filename:	selects 'filename' as an input file\n\
+		\t\t-o filename:	command's output will be written in 'filename'\n\
+		\t\t-d :			decode the input\n\
+		\t\t-e :			encode the input\n\
 		\t\tDES\n\
 		options: \n\
-		\t\t-i filename: selects 'filename' as an input file\n\
-		\t\t-o filename: command's output will be written in 'filename'\n\
-		\t\t-d : decode the input\n\
-		\t\t-e : encode the input\n\
-		\t\t-a : decode/encode using base64\n\
+		\t\t-d :			decode the input\n\
+		\t\t-e :			encode the input\n\
+		\t\t-a :			decode/encode using base64\n\
+		\t\t-i val :		selects 'filename' as an input file\n\
+		\t\t-o val :		command's output will be written in 'filename'\n\
+		\t\t-k val :		Raw key, in hex\n\
 		", 319) < 0)
 	exit_err_mess_code("Fatal error: write(): %s (%d)\n", errno, data, EX_OSERR);
 }
