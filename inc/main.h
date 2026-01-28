@@ -113,6 +113,7 @@ void	exit_err_mess_opt2(const char *mess, const char *opt, const char *opt1, t_d
 uint32_t	rotate_left(uint8_t bits, uint32_t word);
 uint32_t	rotate_right(uint8_t bits, uint32_t word);
 uint32_t	shift_right(uint8_t bits, uint32_t word);
+bool		is_whitespace(const char c);
 void	decode(uint32_t *output, uint8_t *input, uint32_t len);
 void	encode(uint8_t *output, uint32_t *input, uint32_t len);
 char	*file_to_str(const char *filename);

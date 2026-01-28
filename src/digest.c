@@ -6,7 +6,7 @@ bool	dgst_setup(t_data *data, char **argv)
 		return (EXIT_FAILURE);
 	// if ((!data->inputs && !(data->options & ~(PRINT)))
 	// 	|| ((!data->inputs || (data->options & (PRINT))) && is_in_pipe()))
-	if ( (!data->inputs && !(data->options & ~(PRINT)))
+	if ( !data->inputs
 		|| (data->inputs && (data->options & PRINT)))
 	{
 		data->options |= READ_IN;

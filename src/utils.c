@@ -4,6 +4,8 @@ inline uint32_t	rotate_left(uint8_t bits, uint32_t word) { return ((word << bits
 inline uint32_t	rotate_right(uint8_t bits, uint32_t word) { return ((word >> bits) | (word << (32 - bits))); }
 inline uint32_t	shift_right(uint8_t bits, uint32_t word) { return (word >> bits); }
 
+inline bool		is_whitespace(const char c) { return ((9 <= c && c <= 13) || c == 32); }
+
 void	decode(uint32_t *output, uint8_t *input, uint32_t len)
 {
 	for (uint32_t i = 0, j = 0; j < len; i++, j += 4)

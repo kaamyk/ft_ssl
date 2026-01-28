@@ -2,14 +2,27 @@
 
 bool	cphr_setup(t_data *data, char **argv)
 {
+	size_t i = 0;
+	size_t j = 0;
+	
 	data->options |= ENCODE;
 	if (cphr_parser(data, argv))
 		return (EXIT_FAILURE);
-	if (!(data->options | (DECODE | ENCODE)))
+	if (!(data->options & ~(DECODE | ENCODE)))
 	{
 		data->options |= READ_IN;
 		if ((data->in = read_stdin()) == NULL)
 			return (ret_err_mess_code("ft_ssl: fatal error: %s\n", errno));
+		while (data->in[j])
+		{
+			while (data->in[j] && is_whitespace(data->in[j]))
+				++j;
+			data->in[i] = data->in[j];
+			++i;
+			++j;
+		}
+		bzero(data->in + i, j - i);
+		// printf("data->in == [%s]\n", data->in);
 	}
 	return (EXIT_SUCCESS);
 }
@@ -24,8 +37,6 @@ bool	cphr_exec(t_data *data, t_algo_fn f)
 				exit_err_code(data, EX_OSERR);
 			free(data->in);
 		}
-		// else
-		// 	return (dgst_stdin(data, f));
 		data->options &= ~(READ_IN);
 	}
 	if (data->in_file)
@@ -57,7 +68,5 @@ bool	cphr_main(t_data *data, char **argv)
 			break ;
 		}
 	}
-	if (data->in)
-		free(data->in);
 	return (EXIT_SUCCESS);
 }
