@@ -25,7 +25,6 @@ bool	cphr_setup(t_data *data, char **argv)
 			++j;
 		}
 		bzero(data->in + i, j - i);
-		printf("data->in == [%s]\n", data->in);
 	}
 	return (EXIT_SUCCESS);
 }

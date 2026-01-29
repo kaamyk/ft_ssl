@@ -83,36 +83,155 @@ bool	cphr_set_option(char *runner, uint16_t *options)
 			*options |= B64; break ;
 		case 'h':
 			*options |= USAGE; break;
+		case 'p':
+			break ;
+		case 'k':
+			break ;
+		case 's':
+			break ;
+		case 'v':
+			break ;
 		default :
 			return (EXIT_FAILURE);
 	}
 	return (EXIT_SUCCESS);
 }
 
-bool	cphr_parse_key(char *input)
+bool	cphr_parse_hexa_input(char *input)
 {
 	if (!input)
 		return (EXIT_FAILURE);
 	while (*input)
 	{
 		if (!is_hexa(*input))
+			return (EXIT_FAILURE);
+		++input;
+	}
+	return (EXIT_SUCCESS);
+}
+
+bool	cphr_parse_pw(char *input)
+{
+	if (!input)
+		return (EXIT_FAILURE);
+	while (*input)
+	{
+		if (!isascii(*input))
 		{
-			ret_err_mess("ft_ssl: des: invalid key. Run './ft_ssl -h' for usage.\n");
+			ret_err_mess("ft_ssl: des: invalid password. Run './ft_ssl -h' for usage.\n");
 			return (EXIT_FAILURE);
 		}
+		++input;
 	}
 	return (EXIT_SUCCESS);
 }
 
 char	**cphr_parse_opt(t_data *data, char **runner)
 {
-	// PASTE opt parsing to reduce cphr_parser();
+	if (strlen(*runner) == 2)
+	{
+		switch (*((*runner) + 1))	// next char
+		{
+			case 'i':
+				data->options |= IN_FILE; break;
+				if (*(runner + 1) && **(runner + 1) != '-') // next ptr
+				{
+					data->in_file = *(++runner);
+					data->options &= ~(IN_FILE);
+				}
+				else
+					exit_err_mess_opt("ft_ssl: '%s': invalid argument. Run './ft_ssl -h for usage.", *runner, data, EX_USAGE);
+				break ;
+			case 'o':
+				data->options |= OUT_FILE;
+				if (*(runner + 1) && **(runner + 1) != '-')
+				{
+					data->out_file = *(++runner);
+					data->options &= ~(OUT_FILE);
+				}
+				else
+					exit_err_mess_opt2("ft_ssl: '%s': invalid argument. Run './ft_ssl %s -h for usage.", *runner, data->algo, data, EX_USAGE);
+				break ;
+			case 'd':
+				data->options |= DECODE; 
+				data->options &= ~(ENCODE);
+				break;
+			case 'e':
+				data->options |= ENCODE;
+				data->options &= ~(DECODE);
+				 break;
+			case 'a':
+				data->options |= B64;
+				break ;
+			case 'h':
+				data->options |= USAGE;
+				break;
+			case 'k':
+				if (!cphr_parse_hexa_input(*(runner + 1)))	// next string pointer
+					data->raw_key = *(++runner);
+				else
+					exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", *(runner + 1), data->algo, data, EX_USAGE);
+				break ;
+			case 'p':
+				if (!cphr_parse_pw(*(runner + 1)))
+					data->password = *(++runner);
+				else
+					exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", *(runner + 1), data->algo, data, EX_USAGE);
+				break ;
+			case 's':
+				printf("*runner == [%s] | *(runner + 1) == [%s]\n", *runner, *(runner + 1));
+				if (!cphr_parse_hexa_input(*(runner + 1)))	// next string pointer
+					data->salt = *(++runner);
+				else
+				{
+					printf("*runner == [%s] | *(runner + 1) == [%s]\n", *runner, *(runner + 1));
+					exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", *(runner + 1), data->algo, data, EX_USAGE);
+				}
+				break ;
+			case 'v':
+				if (!cphr_parse_hexa_input(*(runner + 1)))	// next string pointer
+					data->init_vector = *(++runner);
+				else
+					exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", *(runner + 1), data->algo, data, EX_USAGE);
+				break ;
+			default:
+				break ;
+		}
+		// else if (cphr_set_option(*runner, &data->options))
+		// 	exit_err_mess_opt2("ft_ssl: Invalid option '%s'. Run './ft_ssl %s -h' to print usage.\n", *runner, data->algo, data, EX_USAGE);
+	}
+	else 
+		exit_err_mess_opt2("ft_ssl: Invalid option. Run './ft_ssl %s -h' to print usage.\n", *runner, data->algo, data, EX_USAGE);
 	return (runner);
 }
 
 char	**cphr_parse_opt_args(t_data *data, char **runner)
 {
-	// PASTE opt argumehts parsing to reduce cphr_parser();
+	if (data->options & USAGE)
+	{
+		print_cphr_usage(data);
+		exit_err_code(data, EXIT_SUCCESS);
+	}
+	else if (data->options & IN_FILE)
+	{
+		if (*(runner + 1) && **(runner + 1) != '-')
+		{
+			data->in_file = *(++runner);
+			data->options &= ~(IN_FILE);
+		}
+		else
+			exit_err_mess_opt("ft_ssl: '%s': invalid argument. Run './ft_ssl -h for usage.", *runner, data, EX_USAGE);
+	}
+	else if (data->options & OUT_FILE)
+	{
+		if (*(runner + 1) && **(runner + 1) != '-')
+		{
+			data->out_file = *(++runner);
+			data->options &= ~(OUT_FILE);
+		}
+		else
+			exit_err_mess_opt2("ft_ssl: '%s': invalid argument. Run './ft_ssl %s -h for usage.", *runner, data->algo, data, EX_USAGE);
+	}
 	return (runner);
 }
 
@@ -133,57 +252,13 @@ bool	cphr_parser(t_data *data, char **argv)
 	//	-- OPTIONS --
 	while (*runner && **runner == '-' && !(data->options & (USAGE | STRING)))
 	{
-		if (**runner == '-')
-		{
-			if (strlen(*runner) == 2)
-			{
-				if (*((*runner) + 1) == 'k')	// next char
-				{
-					if (!cphr_parse_key(*(runner + 1)))	// next string pointer
-					{
-						printf(">> DEFINING RAW KEY\n");
-						data->raw_key = *(++runner);
-					}
-					else
-						exit_err_code(data, EX_USAGE);
-				}
-				else if (cphr_set_option(*runner, &data->options))
-					exit_err_mess_opt2("ft_ssl: Invalid option '%s'. Run './ft_ssl %s -h' to print usage.\n", *runner, data->algo, data, EX_USAGE);
-			}
-			else 
-				exit_err_mess_opt2("ft_ssl: Invalid option '%s'. Run './ft_ssl %s -h' to print usage.\n", *runner, data->algo, data, EX_USAGE);
-		}
-		if (data->options & USAGE)
-		{
-			print_cphr_usage(data);
-			exit_err_code(data, EXIT_SUCCESS);
-		}
-		else if (data->options & IN_FILE)
-		{
-			if (*(runner + 1) && **(runner + 1) != '-')
-			{
-				data->in_file = *(++runner);
-				data->options &= ~(IN_FILE);
-			}
-			else
-				exit_err_mess_opt("ft_ssl: '%s': invalid argument. Run './ft_ssl -h for usage.", *runner, data, EX_USAGE);
-		}
-		else if (data->options & OUT_FILE)
-		{
-			if (*(runner + 1) && **(runner + 1) != '-')
-			{
-				data->out_file = *(++runner);
-				data->options &= ~(OUT_FILE);
-			}
-			else
-				exit_err_mess_opt2("ft_ssl: '%s': invalid argument. Run './ft_ssl %s -h for usage.", *runner, data->algo, data, EX_USAGE);
-		}
+		runner = cphr_parse_opt(data, runner);
+		// runner = cphr_parse_opt_args(data, runner);
 		++runner;
 	}
 	if (!algo && !(data->options & USAGE))
 		exit_err_mess("ft_ssl: no agorithm. Run \"./ft_ssl -h\" for usage\n", data, EX_USAGE);
 	if (*runner)
 		data->inputs = runner;
-	printf("data->raw_key == %s\n", data->raw_key);
 	return (EXIT_SUCCESS);
 }

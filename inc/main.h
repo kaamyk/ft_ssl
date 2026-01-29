@@ -2,6 +2,7 @@
 #define FTSSL
 
 #include <stdint.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <errno.h>
@@ -65,6 +66,9 @@ typedef struct	s_data
 	char		*in;
 	char		*string;
 	char		*raw_key;
+	char		*password;
+	char		*salt;
+	char		*init_vector;
 	char		**inputs;
 	char		*in_file;
 	char		*out_file;

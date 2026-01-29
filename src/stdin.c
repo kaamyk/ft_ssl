@@ -32,7 +32,7 @@ bool	is_in_pipe( void )
 	if (fstat(STDIN_FILENO, &st) == -1)
 	{
 		fprintf(stderr, "ft_ssl: is_in_pipe(): fstat(): %s\n", strerror(errno));
-		return (EXIT_SUCCESS);
+		return (false);
 	}
 	return (S_ISFIFO(st.st_mode) || S_ISSOCK(st.st_mode));
 }
