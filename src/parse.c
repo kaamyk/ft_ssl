@@ -63,39 +63,39 @@ bool	dgst_parser(t_data *data, char **argv)
 	/* === CIPHER === */
 	/* ============== */
 	
-bool	cphr_set_option(char *runner, uint16_t *options)
-{
-	switch(*(runner + 1))
-	{
-		case 'i':
-			*options |= IN_FILE; break;
-		case 'o':
-			*options |= OUT_FILE; break;
-		case 'd':
-			*options |= DECODE; 
-			*options &= ~(ENCODE);
-			break;
-		case 'e':
-			*options |= ENCODE;
-			*options &= ~(DECODE);
-			 break;
-		case 'a':
-			*options |= B64; break ;
-		case 'h':
-			*options |= USAGE; break;
-		case 'p':
-			break ;
-		case 'k':
-			break ;
-		case 's':
-			break ;
-		case 'v':
-			break ;
-		default :
-			return (EXIT_FAILURE);
-	}
-	return (EXIT_SUCCESS);
-}
+// bool	cphr_set_option(char *runner, uint16_t *options)
+// {
+// 	switch(*(runner + 1))
+// 	{
+// 		case 'i':
+// 			*options |= IN_FILE; break;
+// 		case 'o':
+// 			*options |= OUT_FILE; break;
+// 		case 'd':
+// 			*options |= DECODE; 
+// 			*options &= ~(ENCODE);
+// 			break;
+// 		case 'e':
+// 			*options |= ENCODE;
+// 			*options &= ~(DECODE);
+// 			 break;
+// 		case 'a':
+// 			*options |= B64; break ;
+// 		case 'h':
+// 			*options |= USAGE; break;
+// 		case 'p':
+// 			break ;
+// 		case 'k':
+// 			break ;
+// 		case 's':
+// 			break ;
+// 		case 'v':
+// 			break ;
+// 		default :
+// 			return (EXIT_FAILURE);
+// 	}
+// 	return (EXIT_SUCCESS);
+// }
 
 bool	cphr_parse_hexa_input(char *input)
 {
