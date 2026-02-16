@@ -87,7 +87,7 @@ char	*base64_decode(const char *input)
 	return (res);
 }
 
-bool 	B64Routine(const t_data *data, const char *runner, const char *to_hash)
+bool 	B64Routine(t_data *data, char *runner, char *to_hash)
 {
 	(void)runner;
 	char	*res = NULL;

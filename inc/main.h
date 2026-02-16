@@ -81,7 +81,7 @@ typedef struct	s_cmd
 	const t_cmd_fn	fn;
 }				t_cmd;
 
-typedef bool (*t_algo_fn)(const t_data *, const char *, const char *);
+typedef bool (*t_algo_fn)(t_data *, char *, char *);
 typedef struct	s_algo
 {
 	const char		*name;
@@ -165,10 +165,10 @@ bool	MDRoutine(const t_data *data, const char *runner, const char *to_hash);
 //	base64.c
 char	*base64_encode(const char *input);
 char	*base64_decode(const char *input);
-bool 	B64Routine(const t_data *data, const char *runner, const char *to_hash);
+bool 	B64Routine(t_data *data, char *runner, char *to_hash);
 
 //	des.c
-bool 	DESRoutine(const t_data *data, const char *runner, const char *to_hash);
+bool 	DESRoutine(t_data *data, char *runner, char *to_encrypt);
 
 //	routine.c
 void	routine(t_data *data);

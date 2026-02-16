@@ -3,84 +3,49 @@
 /* ====================== */
 /* === KEY SCHEDULING === */
 /* ====================== */
-inline uint64_t left_circular_shift(uint64_t input, const uint8_t round)
+inline void left_circular_shift(uint8_t input[7], const uint8_t round)
 {
-	uint8_t	tmp[8] = {0};
+	uint8_t	tmp[7] = {0};
 	uint8_t	shifted[8] = {0};
 	
-	memcpy(tmp, &input, 8);
+	memcpy(tmp, &input, 7);
 	if (round == 1 || round == 2 || round == 9 || round == 16)
 	{
-		shifted[0] = tmp[0] << 1 | tmp[1] >> 7;
-		shifted[1] = tmp[1] << 1 | tmp[2] >> 7;
-		shifted[2] = tmp[2] << 1 | tmp[3] >> 7;
-		shifted[3] = tmp[3] << 1 | tmp[4] >> 7;
-		shifted[4] = tmp[4] << 1 | tmp[5] >> 7;
-		shifted[5] = tmp[5] << 1 | tmp[6] >> 7;
-		shifted[6] = tmp[6] << 1 | tmp[7] >> 7;
-		shifted[7] = tmp[7] << 1 | tmp[0] >> 7;
+		input[0] = tmp[0] << 1 | tmp[1] >> 7;
+		input[1] = tmp[1] << 1 | tmp[2] >> 7;
+		input[2] = tmp[2] << 1 | tmp[3] >> 7;
+		input[3] = tmp[3] << 1 | tmp[4] >> 7;
+		input[4] = tmp[4] << 1 | tmp[5] >> 7;
+		input[5] = tmp[5] << 1 | tmp[6] >> 7;
+		input[6] = tmp[6] << 1 | tmp[0] >> 7;
+		// input[7] = tmp[7] << 1 | tmp[0] >> 7;
 	}
 	else
 	{
-		shifted[0] = tmp[0] << 2 | tmp[1] >> 6;
-		shifted[1] = tmp[1] << 2 | tmp[2] >> 6;
-		shifted[2] = tmp[2] << 2 | tmp[3] >> 6;
-		shifted[3] = tmp[3] << 2 | tmp[4] >> 6;
-		shifted[4] = tmp[4] << 2 | tmp[5] >> 6;
-		shifted[5] = tmp[5] << 2 | tmp[6] >> 6;
-		shifted[6] = tmp[6] << 2 | tmp[7] >> 6;
-		shifted[7] = tmp[7] << 2 | tmp[0] >> 6;
+		input[0] = tmp[0] << 2 | tmp[1] >> 6;
+		input[1] = tmp[1] << 2 | tmp[2] >> 6;
+		input[2] = tmp[2] << 2 | tmp[3] >> 6;
+		input[3] = tmp[3] << 2 | tmp[4] >> 6;
+		input[4] = tmp[4] << 2 | tmp[5] >> 6;
+		input[5] = tmp[5] << 2 | tmp[6] >> 6;
+		input[6] = tmp[6] << 2 | tmp[0] >> 6;
+		// input[7] = tmp[7] << 2 | tmp[0] >> 6;
 	}
-	memcpy(&input, shifted, 8);
-	return (input);
+	// memcpy(&input, input, 8);
+	// return (input);
 }
 
-uint64_t	DESPermuted_1(uint64_t input)
+void	DESPermuted_1(uint64_t input, uint8_t key_rot[7])
 {
 	uint8_t tmp[8] = {0};
-	uint8_t	res[8] = {0};
 	uint8_t	ff = 0xFF;
 	
 	memcpy(tmp, &input, 8);
 	for (uint8_t i = 0; i < 7; i++)
 	{
 		printf("res[%d] = (tmp[%d] & %x) | tmp[%d] >> %d\n", 7-i, 7-(i+1), ff >> (7-i), 7-i, i+1);
-		res[7 - i] = (tmp[7 - (i + 1)] & (ff >> (7 - i))) | tmp[7 - i] >> (i + 1);
+		key_rot[7 - i] = (tmp[7 - (i + 1)] & (ff >> (7 - i))) | tmp[7 - i] >> (i + 1);
 	}
-	memcpy(&input, res, 8);
-	return (input);
-}
-
-uint64_t	DESPermuted_2(uint64_t input)
-{
-	uint8_t tmp[8] = {0};
-	uint8_t res[8] = {0};
-	uint8_t ff = 0xFF;
-	
-	memcpy(tmp, &input, 8);
-	if (tmp[0])
-		return (ret_err_mess_code("ft_ssl: DESPermuted_2: invalid input", EX_DATAERR));
-	res[7]  = tmp[7] & 0x3; 		//0b00000011 |
-	res[7] |= (tmp[7] & 0xF8) >> 1;	//0b01111111 | 54
-	res[7] |= (tmp[6] & 0x1)  << 7;	//0b11111111 |
-	
-	res[6] |= (tmp[6] >> 1) & 0xF;	//0b00000001 |
-	res[6] |= (tmp[6] & 0xC0) >> 2;	//0b11111111
-	res[6] |= (tmp[5] & 0x3)  << 6;
-	
-	res[5] |= (tmp[5] & 0x18) >> 3;
-	res[5] |= (tmp[5] & 0xC0) >> 4;
-	res[5] |= (tmp[4] & 0xF)  << 4;
-	
-	res[4] |= (tmp[4] & 0x70) >> 4;
-	res[4] |= (tmp[3] & 0x3)  << 3;
-	res[4] |= (tmp[3] & 0x38) << 2;
-	
-	res[3] |= tmp[3] >> 7;
-	res[3] |= tmp[2] << 1;
-	
-	res[2] = tmp[1];
-	return (input);
 }
 
 uint8_t	DESs_box(uint8_t input)
@@ -97,7 +62,7 @@ uint8_t	DESs_box(uint8_t input)
 	return(tab[y][x]);
 }
 
-uint32_t	DESPermute(uint32_t input, const uint8_t *tab, const size_t tab_len, size_t in_bits)
+uint32_t	DESPermute(uint64_t input, const uint8_t *tab, const size_t tab_len, size_t in_bits)
 {
 	uint32_t	res = 0;
 	uint8_t		src = 0;
@@ -152,36 +117,139 @@ uint64_t	DESInverse_initial_permutation(uint64_t input)
 	return (input = DESPermute(input, tab, 64, 64));
 }
 
-uint64_t	DESExpansion(uint32_t input)
+void	DESPermuted_2(uint8_t input[7])
+{
+	// modifier avec la methode du tableau et de lq fonction au dessus
+	
+	uint8_t	tab[48] = {
+		 1,  2,  3,  4,  5,  6,  7,  8,
+		10, 11, 12, 13, 14, 15, 16, 17,
+		19, 20, 21, 23, 24, 26, 27, 28,
+		29, 30, 31, 32, 33, 34, 36, 37,
+		39, 40, 41, 42, 44, 45, 46, 47,
+		48, 49, 50, 51, 52, 53, 54, 55
+	};
+	uint64_t	res = 0;
+	
+	// uint8_t tmp[8] = {0};
+	// uint8_t res[7] = {0};
+	// uint8_t ff = 0xFF;
+	
+	// memcpy(tmp, &input, 8);
+	// if (tmp[0])
+	// 	return (ret_err_mess_code("ft_ssl: DESPermuted_2: invalid input", EX_DATAERR));
+	// res[7]  = tmp[7] & 0x3; 		//0b00000011 |
+	// res[7] |= (tmp[7] & 0xF8) >> 1;	//0b01111111 | 54
+	// res[7] |= (tmp[6] & 0x1)  << 7;	//0b11111111 |
+	
+	// res[6] |= (tmp[6] >> 1) & 0xF;	//0b00000001 |
+	// res[6] |= (tmp[6] & 0xC0) >> 2;	//0b11111111
+	// res[6] |= (tmp[5] & 0x3)  << 6;
+	
+	// res[5] |= (tmp[5] & 0x18) >> 3;
+	// res[5] |= (tmp[5] & 0xC0) >> 4;
+	// res[5] |= (tmp[4] & 0xF)  << 4;
+	
+	// res[4] |= (tmp[4] & 0x70) >> 4;
+	// res[4] |= (tmp[3] & 0x3)  << 3;
+	// res[4] |= (tmp[3] & 0x38) << 2;
+	
+	// res[3] |= tmp[3] >> 7;
+	// res[3] |= tmp[2] << 1;
+	
+	// res[2] = tmp[1];
+	res = DESPermute((uint64_t)input, tab, 56, 48);
+	memcpy(input, &res + 2, 48);
+}
+
+void	DESExpansion(uint32_t input, uint8_t expanded[6])
 {
 	uint64_t	res = 0;
-	uint8_t		tab[64] = {
-		32, 1, 2, 3, 4, 5,
-		4, 5, 6, 7, 8, 9,
-		8, 9, 10 , 11, 12, 13,
+	uint32_t	bit = 0;
+	uint8_t		tab[48] = {
+		32,  1,  2,  3,  4,  5,
+		 4,  5,  6,  7,  8,  9,
+		 8,  9, 10, 11, 12, 13,
 		12, 13, 14, 15, 16, 17,
 		16, 17, 18, 19, 20, 21,
 		20, 21, 22, 23, 24, 25,
 		24, 25, 26, 27, 28, 29,
-		28, 29, 30, 31, 32, 1
+		28, 29, 30, 31, 32,  1
 	};
 	
-	return (res = DESPermute(input, tab, 48, 64));
+	for (size_t i = 0; i < 48; i++)
+	{
+		bit = (input >> (32 - 1 - (tab[i] - 1))) & 1U;
+		res = (res << 1) | bit;
+	}
+	memcpy(expanded, &res + 2, 48);
 }
 
-bool	DESExec(const t_data *data, const char *runner, const char )
+uint64_t	key_scheduling(uint32_t key_left, uint32_t key_right)
+{
+	
+}
 
-bool 	DESRoutine(const t_data *data, const char *runner, const char *to_hash)
+uint32_t	ft_mangler(uint32_t to_enc[2], uint8_t contr_key[6])
+{
+	uint8_t		exp_to_enc[6] = {0};
+	uint32_t	res = {0};
+	uint64_t	tmp = 0;
+	
+	DESExpansion(to_enc[1], exp_to_enc);
+	for (uint8_t i = 0; i < 6; i++)
+		exp_to_enc[i] = exp_to_enc[i] ^ contr_key[i];
+	memcpy((uint8_t *)&tmp + 2, exp_to_enc, 6);
+	for (uint8_t i = 0; i < 8; i++)
+		res |= (DESs_box(tmp)) << (28 - (i * 4)); // Check if each box different
+	res = DESp_box(res);
+	return (res);
+}
+
+uint64_t	DESRound(uint64_t input, uint8_t key[6])
+{
+	uint64_t	output = 0;
+	uint32_t	input_half[2] = {0};
+	uint32_t	key_half[2] = {0};
+	
+	// Revoir les conversion de tailled de bits dand les functions
+	left_circular_shift(key_rot, i);
+	DESPermuted_2(key_rot);
+	ft_mangler(chunck_input, key_rot);
+	return (output);
+}
+
+bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 {
 	(void)runner;
 	char	*res = NULL;
+	uint64_t		chunck_input = 0;
+	uint8_t			key_rot[7]	= {0};
+	const size_t	len_to_enc = strlen(to_encrypt);
 	
-	if (data->options & B64)
+	// /* --- BASE 64--- */
+	// if (data->options & B64)
+	// {
+	// 	if (data->options & DECODE)
+	// 		res = base64_decode(to_encrypt);
+	// 	else if (data->options & ENCODE)
+	// 		res = base64_encode(to_encrypt);
+	// }
+	/* --- CIPHER ALGO --- */
+	for (uint32_t i = 0; i < len_to_enc; i += 64)
 	{
-		if (data->options & DECODE)
-			res = base64_decode(to_hash);
-		else if (data->options & ENCODE)
-			res = base64_encode(to_hash);
+		chunck_input = DESInitial_permutation((uint64_t)to_encrypt + i);
+		DESPermuted_1((uint64_t)data->raw_key, key_rot);
+		for (uint8_t i = 0; i < 16; i++)
+		{
+			chunck_input = DESRound(chunck_input, key_rot);
+		}
+		chunck_input = (chunck_input >> 32 ) | (chunck_input << 32);
+		chunck_input = DESInverse_initial_permutation(chunck_input);
+		if (res)
+			res = ft_strjoin(res, (char*)chunck_input);
+		else
+			res = (char *)chunck_input;
 	}
 	if (cphr_display(res))
 		return (EXIT_FAILURE);
