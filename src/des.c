@@ -257,6 +257,7 @@ uint64_t	DESRound(uint64_t chunck_input, uint64_t key, const uint8_t round)
 
 bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 {
+	printf("DESRoutine(data(%p), *runner(%p) -> [%s], *to_encrypt(%p) -> [%s])\n", data, runner, runner, to_encrypt, to_encrypt);
 	(void)runner;
 	char	*res = NULL;
 	uint64_t		chunck_input = 0;
@@ -272,13 +273,17 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 	// 		res = base64_encode(to_encrypt);
 	// }
 	/* --- CIPHER ALGO --- */
+	printf("la\n");
 	memcpy(&key, data->raw_key, 8);
 	for (uint32_t i = 0; i < len_to_enc; i += 64)
 	{
 		chunck_input = DESInitial_permutation((uint64_t)to_encrypt + i);
 		DESPermuted_1(&key);
 		for (uint8_t i = 0; i < 16; i++)
+		{
 			chunck_input = DESRound(chunck_input, key, i);
+			printf("round -> %d\n", i);
+		}
 		chunck_input = (chunck_input >> 32 ) | (chunck_input << 32);
 		chunck_input = DESInverse_initial_permutation(chunck_input);
 		if (res)
@@ -286,6 +291,7 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 		else
 			res = (char *)chunck_input;
 	}
+	// printf("res => [%s]\n", res);
 	if (cphr_display(res))
 		return (EXIT_FAILURE);
 	free(res);
