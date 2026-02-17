@@ -149,7 +149,7 @@ extern int		SHA256Reset(t_SHA256_CTX *);
 extern int		SHA256Input(t_SHA256_CTX *, const uint8_t *bytes, unsigned int bytecount);
 extern int		SHA256FinalBits(t_SHA256_CTX *, const uint8_t bits, unsigned int bitcount);
 extern uint8_t	SHA256Result(t_SHA256_CTX *, uint8_t Message_Digest[SHA256_HSSZ]);// 
-bool			SHARoutine(const t_data *data, const char *runner, const char *to_hash);
+bool			SHARoutine(t_data *data, char *runner, char *to_hash);
 // bool			SHAMain(t_data *data);
 
 //	md5.c
@@ -159,7 +159,7 @@ void	MD5Update(t_MD5_CTX *context, uint8_t *input, unsigned int inputLen);
 void	MD5Final(uint8_t digest [16], t_MD5_CTX *context);
 void	MD5memset(uint8_t *output, const uint8_t value, const uint32_t len);
 uint8_t	*MD5memcpy(uint8_t *dest, const uint8_t *src, const uint32_t len);
-bool	MDRoutine(const t_data *data, const char *runner, const char *to_hash);
+bool	MDRoutine(t_data *data, char *runner, char *to_hash);
 // bool	MDMain(t_data *data);
 
 //	base64.c

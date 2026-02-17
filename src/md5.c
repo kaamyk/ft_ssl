@@ -206,7 +206,7 @@ void	MD5Final(uint8_t digest [16], t_MD5_CTX *context)
 	MD5memset((uint8_t *)context, 0, sizeof(*context));
 }
 
-bool	MDRoutine(const t_data *data, const char *runner, const char *to_hash)
+bool	MDRoutine(t_data *data, char *runner, char *to_hash)
 {
 	t_MD5_CTX	context = {0};
 	uint8_t		digest[MD5_HSSZ] = {0};

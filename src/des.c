@@ -3,49 +3,63 @@
 /* ====================== */
 /* === KEY SCHEDULING === */
 /* ====================== */
-inline void left_circular_shift(uint8_t input[7], const uint8_t round)
-{
-	uint8_t	tmp[7] = {0};
-	uint8_t	shifted[8] = {0};
+// inline void left_circular_shift(uint8_t input[4], const uint8_t round)
+// {
+// 	uint8_t	tmp[4] = {0};
+// 	uint8_t	shifted[8] = {0};
 	
-	memcpy(tmp, &input, 7);
+// 	memcpy(tmp, &input, 4);
+// 	if (round == 1 || round == 2 || round == 9 || round == 16)
+// 	{
+// 		input[0] = tmp[0] << 1 | tmp[1] >> 7;
+// 		input[1] = tmp[1] << 1 | tmp[2] >> 7;
+// 		input[2] = tmp[2] << 1 | tmp[3] >> 7;
+// 		input[3] = tmp[3] << 1 | tmp[0] >> 7;
+// 		// input[4] = tmp[4] << 1 | tmp[5] >> 7;
+// 		// input[5] = tmp[5] << 1 | tmp[6] >> 7;
+// 		// input[6] = tmp[6] << 1 | tmp[0] >> 7;
+// 		// input[7] = tmp[7] << 1 | tmp[0] >> 7;
+// 	}
+// 	else
+// 	{
+// 		input[0] = tmp[0] << 2 | tmp[1] >> 6;
+// 		input[1] = tmp[1] << 2 | tmp[2] >> 6;
+// 		input[2] = tmp[2] << 2 | tmp[3] >> 6;
+// 		input[3] = tmp[3] << 2 | tmp[0] >> 6;
+// 		// input[4] = tmp[4] << 2 | tmp[5] >> 6;
+// 		// input[5] = tmp[5] << 2 | tmp[6] >> 6;
+// 		// input[6] = tmp[6] << 2 | tmp[0] >> 6;
+// 		// input[7] = tmp[7] << 2 | tmp[0] >> 6;
+// 	}
+// 	// memcpy(&input, input, 8);
+// 	// return (input);
+// }
+
+inline void left_circular_shift(uint32_t *input, const uint8_t round)
+{
 	if (round == 1 || round == 2 || round == 9 || round == 16)
-	{
-		input[0] = tmp[0] << 1 | tmp[1] >> 7;
-		input[1] = tmp[1] << 1 | tmp[2] >> 7;
-		input[2] = tmp[2] << 1 | tmp[3] >> 7;
-		input[3] = tmp[3] << 1 | tmp[4] >> 7;
-		input[4] = tmp[4] << 1 | tmp[5] >> 7;
-		input[5] = tmp[5] << 1 | tmp[6] >> 7;
-		input[6] = tmp[6] << 1 | tmp[0] >> 7;
-		// input[7] = tmp[7] << 1 | tmp[0] >> 7;
-	}
+		*input = *input << 1 | *input >> 27;
 	else
-	{
-		input[0] = tmp[0] << 2 | tmp[1] >> 6;
-		input[1] = tmp[1] << 2 | tmp[2] >> 6;
-		input[2] = tmp[2] << 2 | tmp[3] >> 6;
-		input[3] = tmp[3] << 2 | tmp[4] >> 6;
-		input[4] = tmp[4] << 2 | tmp[5] >> 6;
-		input[5] = tmp[5] << 2 | tmp[6] >> 6;
-		input[6] = tmp[6] << 2 | tmp[0] >> 6;
-		// input[7] = tmp[7] << 2 | tmp[0] >> 6;
-	}
-	// memcpy(&input, input, 8);
-	// return (input);
+		*input = *input << 2 | *input >> 26;
 }
 
-void	DESPermuted_1(uint64_t input, uint8_t key_rot[7])
+void	DESPermuted_1(uint64_t *input)
 {
 	uint8_t tmp[8] = {0};
+	uint8_t key_rot[8] = {0};
 	uint8_t	ff = 0xFF;
 	
 	memcpy(tmp, &input, 8);
 	for (uint8_t i = 0; i < 7; i++)
 	{
 		printf("res[%d] = (tmp[%d] & %x) | tmp[%d] >> %d\n", 7-i, 7-(i+1), ff >> (7-i), 7-i, i+1);
-		key_rot[7 - i] = (tmp[7 - (i + 1)] & (ff >> (7 - i))) | tmp[7 - i] >> (i + 1);
+		key_rot[7 - i] = (tmp[7 - (i + 1)] & (ff >> (7 - i))) | (tmp[7 - i] >> (i + 1));
 	}
+	bzero(input, 8);
+	memcpy((uint8_t *)input + 1, key_rot, 7);
+	// Viens de finit cette fonction
+	// dans le cadre d'initialiser la clef
+	// avant d'entrer dans l'algo
 }
 
 uint8_t	DESs_box(uint8_t input)
@@ -62,7 +76,7 @@ uint8_t	DESs_box(uint8_t input)
 	return(tab[y][x]);
 }
 
-uint32_t	DESPermute(uint64_t input, const uint8_t *tab, const size_t tab_len, size_t in_bits)
+uint64_t	DESPermute(uint64_t input, const uint8_t *tab, const size_t tab_len, size_t in_bits)
 {
 	uint32_t	res = 0;
 	uint8_t		src = 0;
@@ -117,7 +131,7 @@ uint64_t	DESInverse_initial_permutation(uint64_t input)
 	return (input = DESPermute(input, tab, 64, 64));
 }
 
-void	DESPermuted_2(uint8_t input[7])
+void	DESPermuted_2(uint64_t *input)
 {
 	// modifier avec la methode du tableau et de lq fonction au dessus
 	
@@ -129,7 +143,7 @@ void	DESPermuted_2(uint8_t input[7])
 		39, 40, 41, 42, 44, 45, 46, 47,
 		48, 49, 50, 51, 52, 53, 54, 55
 	};
-	uint64_t	res = 0;
+	// uint64_t	res = 0;
 	
 	// uint8_t tmp[8] = {0};
 	// uint8_t res[7] = {0};
@@ -158,8 +172,8 @@ void	DESPermuted_2(uint8_t input[7])
 	// res[3] |= tmp[2] << 1;
 	
 	// res[2] = tmp[1];
-	res = DESPermute((uint64_t)input, tab, 56, 48);
-	memcpy(input, &res + 2, 48);
+	*input = DESPermute(*input, tab, 56, 48);
+	// memcpy(input, &res + 2, 48);
 }
 
 void	DESExpansion(uint32_t input, uint8_t expanded[6])
@@ -182,23 +196,43 @@ void	DESExpansion(uint32_t input, uint8_t expanded[6])
 		bit = (input >> (32 - 1 - (tab[i] - 1))) & 1U;
 		res = (res << 1) | bit;
 	}
-	memcpy(expanded, &res + 2, 48);
+	memcpy(expanded, (uint8_t *)&res + 2, 6);
 }
 
-uint64_t	key_scheduling(uint32_t key_left, uint32_t key_right)
+void	key_scheduling(uint32_t key_left, uint32_t key_right, const uint8_t round, uint64_t *round_key)
 {
+	uint8_t		key[7] = {0};
+	// uint8_t		res[6] = {0};
+	uint64_t	tmp = 0;
 	
+	/* Left Shift */
+	left_circular_shift(&key_left, round);
+	left_circular_shift(&key_right, round);
+	/* 2 * 28-bit => 56-bit */
+	key_left <<= 4;
+	memcpy(&tmp, &key_left, 4);
+	key[3] |= ((key_right >> 24) & 0x0F);
+	memcpy(key + 4, (uint8_t *)&key_right + 1, 3);
+	memcpy((uint8_t *)&tmp + 1, key, 7);
+	/* Permuted Choice 2 */
+	DESPermuted_2(&tmp);
+	/* uint64_t => 48-bit */
+	tmp <<= 16;
+	memcpy(round_key, &tmp, 6);
 }
 
-uint32_t	ft_mangler(uint32_t to_enc[2], uint8_t contr_key[6])
+uint32_t	ft_mangler(uint64_t to_enc, uint64_t round_key)
 {
 	uint8_t		exp_to_enc[6] = {0};
+	uint8_t		key_split[6] = {0};
+	uint32_t	enc_right = to_enc & 0xFFFFFFFF;
 	uint32_t	res = {0};
 	uint64_t	tmp = 0;
 	
-	DESExpansion(to_enc[1], exp_to_enc);
+	memcpy(key_split, &round_key, 6);
+	DESExpansion(enc_right, exp_to_enc);
 	for (uint8_t i = 0; i < 6; i++)
-		exp_to_enc[i] = exp_to_enc[i] ^ contr_key[i];
+		exp_to_enc[i] = exp_to_enc[i] ^ key_split[i];
 	memcpy((uint8_t *)&tmp + 2, exp_to_enc, 6);
 	for (uint8_t i = 0; i < 8; i++)
 		res |= (DESs_box(tmp)) << (28 - (i * 4)); // Check if each box different
@@ -206,16 +240,18 @@ uint32_t	ft_mangler(uint32_t to_enc[2], uint8_t contr_key[6])
 	return (res);
 }
 
-uint64_t	DESRound(uint64_t input, uint8_t key[6])
+// Implemanter une fonction qui contient un round 
+uint64_t	DESRound(uint64_t chunck_input, uint64_t key, const uint8_t round)
 {
 	uint64_t	output = 0;
-	uint32_t	input_half[2] = {0};
-	uint32_t	key_half[2] = {0};
+	uint32_t	key_split[2] = {0};
+	uint64_t	round_key = 0;
 	
+	memcpy(key_split, &key, 8);
 	// Revoir les conversion de tailled de bits dand les functions
-	left_circular_shift(key_rot, i);
-	DESPermuted_2(key_rot);
-	ft_mangler(chunck_input, key_rot);
+	key_scheduling(key_split[0], key_split[1], round, &round_key);
+	DESPermuted_2(&round_key);
+	ft_mangler(chunck_input, round_key);
 	return (output);
 }
 
@@ -224,7 +260,7 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 	(void)runner;
 	char	*res = NULL;
 	uint64_t		chunck_input = 0;
-	uint8_t			key_rot[7]	= {0};
+	uint64_t		key = 0;
 	const size_t	len_to_enc = strlen(to_encrypt);
 	
 	// /* --- BASE 64--- */
@@ -236,14 +272,13 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 	// 		res = base64_encode(to_encrypt);
 	// }
 	/* --- CIPHER ALGO --- */
+	memcpy(&key, data->raw_key, 8);
 	for (uint32_t i = 0; i < len_to_enc; i += 64)
 	{
 		chunck_input = DESInitial_permutation((uint64_t)to_encrypt + i);
-		DESPermuted_1((uint64_t)data->raw_key, key_rot);
+		DESPermuted_1(&key);
 		for (uint8_t i = 0; i < 16; i++)
-		{
-			chunck_input = DESRound(chunck_input, key_rot);
-		}
+			chunck_input = DESRound(chunck_input, key, i);
 		chunck_input = (chunck_input >> 32 ) | (chunck_input << 32);
 		chunck_input = DESInverse_initial_permutation(chunck_input);
 		if (res)

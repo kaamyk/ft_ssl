@@ -304,7 +304,7 @@ uint8_t	SHA256Result(t_SHA256_CTX *context, uint8_t *Message_Digest)
 	return (shaSuccess);
 }
 
-bool	SHARoutine(const t_data *data, const char *runner, const char *to_hash)
+bool	SHARoutine(t_data *data, char *runner, char *to_hash)
 {
 	t_SHA256_CTX	context = {0};
 	uint8_t	digest[SHA256_HSSZ] = {0};
