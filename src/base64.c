@@ -1,8 +1,10 @@
 #include "../inc/main.h"
 
-inline char get_base_char(uint8_t to_convert) { return (BASE64STR[to_convert & 0x3F]); }
+// inline char get_base_char(uint8_t to_convert) { return (BASE64STR[to_convert & 0x3F]); }
+char get_base_char(uint8_t to_convert) { return (BASE64STR[to_convert & 0x3F]); }
 
-inline bool need_pad(const uint32_t input_l) { return (input_l % 3 > 0); }
+// inline bool need_pad(const uint32_t input_l) { return (input_l % 3 > 0); }
+bool need_pad(const uint32_t input_l) { return (input_l % 3 > 0); }
 
 uint8_t		get_base_index(uint8_t to_find)
 {

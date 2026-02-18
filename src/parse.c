@@ -164,8 +164,7 @@ char	**cphr_parse_opt(t_data *data, char **runner)
 				data->options |= B64;
 				break ;
 			case 'h':
-			printf("la\n");
-			data->options |= USAGE;
+				data->options |= USAGE;
 				break;
 			case 'k':
 				// if (!cphr_parse_hexa_input(*(runner + 1)))	// next string pointer
@@ -178,7 +177,7 @@ char	**cphr_parse_opt(t_data *data, char **runner)
 				// if (!cphr_parse_pw(*(runner + 1)))
 				// 	data->password = *(++runner);
 				// else
-				// 	exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", *(runner + 1), data->algo, data, EX_USAGE);
+					exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", *(runner + 1), data->algo, data, EX_USAGE);
 				data->password = *(++runner);
 				break ;
 			case 's':
@@ -196,6 +195,7 @@ char	**cphr_parse_opt(t_data *data, char **runner)
 				data->init_vector = *(++runner);
 				break ;
 			default:
+				exit_err_mess_opt2("ft_ssl: '%s': unvalid option. Run './ft_ssl %s -h for usage.", *runner, data->algo, data, EX_USAGE);
 				break ;
 		}
 		// else if (cphr_set_option(*runner, &data->options))
@@ -272,6 +272,7 @@ bool	cphr_parser(t_data *data, char **argv)
 	//	-- OPTIONS --
 	while (*runner && **runner == '-' && !(data->options & (USAGE | STRING)))
 	{
+		printf("runner == [%s]\n", *runner);
 		runner = cphr_parse_opt(data, runner);
 		++runner;
 	}
