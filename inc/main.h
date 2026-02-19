@@ -53,6 +53,7 @@ enum
 #define B64		1 << base64
 
 #define BASE64STR	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+#define HEXABASE	"0123456789ABCDEF"
 
 #define SHA256_HSSZ 32
 #define SHA256_BLSZ	64
@@ -66,6 +67,7 @@ typedef struct	s_data
 	char		*in;
 	char		*string;
 	char		*raw_key;
+	uint64_t	key;
 	char		*password;
 	char		*salt;
 	char		*init_vector;
@@ -125,6 +127,7 @@ bool		is_hexa(const char c);
 void	decode(uint32_t *output, uint8_t *input, uint32_t len);
 void	encode(uint8_t *output, uint32_t *input, uint32_t len);
 char	*file_to_str(const char *filename);
+uint64_t	atohex(char *str);
 
 //	stdin.c
 char 	*read_stdin( void );

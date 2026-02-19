@@ -215,8 +215,9 @@ void	cphr_parse_opt_args(t_data *data)
 	}
 	if (data->raw_key)
 	{
-		if (cphr_parse_hexa_input(data->raw_key))
+		if (strlen(data->raw_key) != 16 || cphr_parse_hexa_input(data->raw_key))
 			exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", data->raw_key, data->algo, data, EX_USAGE);
+		data->key = atohex(data->raw_key);
 	}
 	if (data->password)
 	{
@@ -233,26 +234,6 @@ void	cphr_parse_opt_args(t_data *data)
 		if (cphr_parse_hexa_input(data->init_vector))
 			exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", data->init_vector, data->algo, data, EX_USAGE);
 	}
-	// else if (data->options & IN_FILE)
-	// {
-	// 	if (*(runner + 1) && **(runner + 1) != '-')
-	// 	{
-	// 		data->in_file = *(++runner);
-	// 		data->options &= ~(IN_FILE);
-	// 	}
-	// 	else
-	// 		exit_err_mess_opt("ft_ssl: '%s': invalid argument. Run './ft_ssl -h for usage.", *runner, data, EX_USAGE);
-	// }
-	// else if (data->options & OUT_FILE)
-	// {
-	// 	if (*(runner + 1) && **(runner + 1) != '-')
-	// 	{
-	// 		data->out_file = *(++runner);
-	// 		data->options &= ~(OUT_FILE);
-	// 	}
-	// 	else
-	// 		exit_err_mess_opt2("ft_ssl: '%s': invalid argument. Run './ft_ssl %s -h for usage.", *runner, data->algo, data, EX_USAGE);
-	// }
 }
 
 bool	cphr_parser(t_data *data, char **argv)

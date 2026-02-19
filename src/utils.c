@@ -60,3 +60,16 @@ char	*file_to_str(const char *filename)
 	fclose(file);
 	return (content);
 }
+
+uint64_t	atohex(char *str)
+{
+	uint64_t	res = 0;
+	char		*ptr = str;
+	
+	while (*ptr)
+	{
+		res = (res << 4) | (strchr(HEXABASE, *ptr) - HEXABASE);
+		++ptr;
+	}
+	return (res);
+}
