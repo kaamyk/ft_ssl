@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <sysexits.h>
+#include <byteswap.h>
 
 enum
 {

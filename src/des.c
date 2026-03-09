@@ -1,74 +1,17 @@
 #include "../inc/main.h"
 
-/* ====================== */
-/* === KEY SCHEDULING === */
-/* ====================== */
-// inline void left_circular_shift(uint8_t input[4], const uint8_t round)
-// {
-// 	uint8_t	tmp[4] = {0};
-// 	uint8_t	shifted[8] = {0};
-
-// 	memcpy(tmp, &input, 4);
-// 	if (round == 1 || round == 2 || round == 9 || round == 16)
-// 	{
-// 		input[0] = tmp[0] << 1 | tmp[1] >> 7;
-// 		input[1] = tmp[1] << 1 | tmp[2] >> 7;
-// 		input[2] = tmp[2] << 1 | tmp[3] >> 7;
-// 		input[3] = tmp[3] << 1 | tmp[0] >> 7;
-// 		// input[4] = tmp[4] << 1 | tmp[5] >> 7;
-// 		// input[5] = tmp[5] << 1 | tmp[6] >> 7;
-// 		// input[6] = tmp[6] << 1 | tmp[0] >> 7;
-// 		// input[7] = tmp[7] << 1 | tmp[0] >> 7;
-// 	}
-// 	else
-// 	{
-// 		input[0] = tmp[0] << 2 | tmp[1] >> 6;
-// 		input[1] = tmp[1] << 2 | tmp[2] >> 6;
-// 		input[2] = tmp[2] << 2 | tmp[3] >> 6;
-// 		input[3] = tmp[3] << 2 | tmp[0] >> 6;
-// 		// input[4] = tmp[4] << 2 | tmp[5] >> 6;
-// 		// input[5] = tmp[5] << 2 | tmp[6] >> 6;
-// 		// input[6] = tmp[6] << 2 | tmp[0] >> 6;
-// 		// input[7] = tmp[7] << 2 | tmp[0] >> 6;
-// 	}
-// 	// memcpy(&input, input, 8);
-// 	// return (input);
-// }
-
-// inline void left_circular_shift(uint32_t *input, const uint8_t round)
 void left_circular_shift(uint32_t *input, const uint8_t round)
 {
-	// // printf("left_circu(%x, %d)\n", *input, round);
 	if (round == 0 || round == 1 || round == 8 || round == 15)
-		*input = (((*input << 1) & 0xFFFFFFF) | (*input >> 26 & 0x1)) & 0xFFFFFFF;
+		*input = ((*input << 1) | (*input >> 27)) & 0xFFFFFFF;
 	else
-		*input = (((*input << 2) & 0xFFFFFFF) | (*input >> 25 & 0x1)) & 0xFFFFFFF;
-		// *input = (*input << 2 | *input >> 25) & 0xFFFFFFF;
-	// printf("end(%x, %d)\n", *input, round);
+		*input = ((*input << 2) | (*input >> 26)) & 0xFFFFFFF;
 }
-
-// void	DESPermuted_1(uint64_t *input)
-// {
-// 	uint8_t tmp[8] = {0};
-// 	uint8_t key_rot[8] = {0};
-// 	uint8_t	ff = 0xFF;
-
-// 	// printf("DESPermuted1(%lx)\n", *input);
-// 	memcpy(tmp, &input, 8);
-// 	for (uint8_t i = 0; i < 7; i++)
-// 		key_rot[7 - i] = (tmp[7 - (i + 1)] & (ff >> (7 - i))) | (tmp[7 - i] >> (i + 1));
-// 	bzero(input, 8);
-// 	memcpy((uint8_t *)input + 1, key_rot, 7);
-// 	// printf("end %lx\n", *input);
-// 	// Viens de finit cette fonction
-// 	// dans le cadre d'initialiser la clef
-// 	// avant d'entrer dans l'algo
-// }
 
 uint8_t	DESs_box(uint8_t input, const uint8_t boxno)
 {
-	const uint8_t	y = input >> 4 | (input & 0x1);
-	const uint8_t	x = (input & 0x1E) >> 1;
+	const uint8_t	y = ((input >> 5) & 1UL) << 1 | (input & 1UL);
+	const uint8_t	x = (input >> 1) & 0xF;
 	const uint8_t	tab[8][4][16] = {
 		{
 			{14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7},
@@ -142,10 +85,10 @@ uint64_t	DESPermute(uint64_t input, const uint8_t *tab, const size_t tab_len, si
 uint32_t	DESp_box(uint32_t input)
 {
 	uint8_t	tab[32] = {
-		16, 7, 20, 21, 29, 12, 28, 17,
-		1, 15, 23, 26, 5, 18, 31, 10,
-		2, 8, 24, 14, 32, 27, 3, 9,
-		19, 13, 30, 6, 22, 11, 4, 25
+		16,  7, 20, 21, 29, 12, 28, 17,
+		 1, 15, 23, 26,  5, 18, 31, 10,
+		 2,  8, 24, 14, 32, 27,  3,  9,
+		19, 13, 30,  6, 22, 11,  4, 25
 	};
 
 	return (input = DESPermute(input, tab, 32, 32));
@@ -185,34 +128,32 @@ uint64_t	DESInverse_initial_permutation(uint64_t input)
 void	DESPermuted_1(uint64_t *input)		// 64 bits -> 56 bits
 {
 	uint8_t	tab[56] = {
-		 1,  2,  3,  4,  5,  6,  7,  9,
-		10, 11, 12, 13, 14, 15, 17, 18,
-		19, 20, 21, 22, 23, 25, 26, 27,
-		28, 29, 30, 31, 33, 34, 35, 36,
-		37, 38, 39, 41, 42, 43, 44, 45,
-		46, 47, 49, 50, 51, 52, 53, 54,
-		55, 57, 58, 59, 60, 61, 62, 63
+		57, 49, 41, 33, 25, 17,  9,  1,
+		58, 50, 42, 34, 26, 18, 10,  2,
+		59, 51, 43, 35, 27, 19, 11,  3,
+		60, 52, 44, 36, 63, 55, 47, 39,
+		31, 23, 15,  7, 62, 54, 46, 38,
+		30, 22, 14,  6, 61, 53, 45, 37,
+		29, 21, 13,  5, 28, 20, 12,  4
 	};
-	
+
 	*input = DESPermute(*input, tab, 56, 64);
 }
 
 void	DESPermuted_2(uint64_t *input)		// 56 bits -> 48 bits
 {
-	// printf("DESPermuted_2(%lx) => ", *input);
 	uint8_t	tab[48] = {
 		14, 17, 11, 24,  1,  5,  3, 28,
 		15,  6, 21, 10, 23, 19, 12,  4,
-		 6,  8, 16,  7, 27, 20, 13,  2,
+		26,  8, 16,  7, 27, 20, 13,  2,
 		41, 52, 31, 37, 47, 55, 30, 40,
 		51, 45, 33, 48, 44, 49, 39, 56,
 		34, 53, 46, 42, 50, 36, 29, 32
 	};
 	*input = DESPermute(*input, tab, 48, 56);
-	// printf("%lx\n", *input);
 }
 
-void	DESExpansion(uint32_t input, uint8_t expanded[6])
+uint64_t	DESExpansion(uint32_t input)
 {
 	uint64_t	res = 0;
 	uint32_t	bit = 0;
@@ -232,13 +173,11 @@ void	DESExpansion(uint32_t input, uint8_t expanded[6])
 		bit = (input >> (32 - 1 - (tab[i] - 1))) & 1U;
 		res = (res << 1) | bit;
 	}
-	memcpy(expanded, (uint8_t *)&res + 2, 6);
+	return (res);
 }
 
 void	key_scheduling(uint32_t *key_left, uint32_t *key_right, const uint8_t round, uint64_t *round_key)
 {
-	// printf("key_scheduling(%x, %x) => ", *key_left, *key_right);
-	// uint8_t		key[7] = {0};
 	uint64_t	tmp = 0;
 
 	/* Left Shift */
@@ -246,31 +185,21 @@ void	key_scheduling(uint32_t *key_left, uint32_t *key_right, const uint8_t round
 	left_circular_shift(key_right, round);
 	/* 2 * 28-bit => 56-bit */
 	tmp = ((uint64_t)*key_left << 28) | *key_right;
-	// printf("tmp == %lx (%x | %x)\n", tmp, *key_left, *key_right);
 	DESPermuted_2(&tmp);
 	/* uint64_t => 48-bit */
 	*round_key = tmp;
-	// printf("%lx\n", *round_key);
 }
 
 uint32_t	ft_mangler(uint64_t to_enc, uint64_t round_key)
 {
-	// printf("ft_mangler(%lx, %lx)\n", to_enc, round_key);
-	uint8_t		exp_to_enc[6] = {0};
-	uint8_t		key_split[6] = {0};
 	uint32_t	enc_right = to_enc & 0xFFFFFFFF;
-	uint32_t	res = {0};
-	uint64_t	tmp = 0;
+	uint32_t	res = 0;
+	uint64_t	xored = 0;
 
-	memcpy(key_split, &round_key, 6);
-	DESExpansion(enc_right, exp_to_enc);
-	for (uint8_t i = 0; i < 6; i++)
-		exp_to_enc[i] = exp_to_enc[i] ^ key_split[i];
-	memcpy((uint8_t *)&tmp + 2, exp_to_enc, 6);
+	xored = DESExpansion(enc_right) ^ round_key;
 	for (uint8_t i = 0; i < 8; i++)
-		res |= (DESs_box(tmp, i)) << (28 - (i * 4)); // Check if each box different
-	res = DESp_box(res);
-	return (res);
+		res |= (uint32_t)DESs_box((xored >> (42 - i * 6)) & 0x3F, i) << (28 - (i * 4));
+	return (DESp_box(res));
 }
 
 void	DESRound(uint64_t *chunck_input, uint64_t *key, const uint8_t round)
@@ -280,7 +209,6 @@ void	DESRound(uint64_t *chunck_input, uint64_t *key, const uint8_t round)
 	uint32_t	chunck_split[2] = {0};
 	uint64_t	round_key = 0;
 
-	// printf("DESRound(%lx, %lx, %d)\n", *chunck_input, *key, round);
 	memcpy(chunck_split, chunck_input, 8);
 	key_split[0] = (*key >> 28) & 0xFFFFFFF;
 	key_split[1] = (*key) & 0xFFFFFFF;
@@ -289,12 +217,7 @@ void	DESRound(uint64_t *chunck_input, uint64_t *key, const uint8_t round)
 	*chunck_input = chunck_split[0];
 	*chunck_input <<= 32;
 	*chunck_input |= (output & 0xFFFFFFFF) ^ chunck_split[1];
-	// printf("chunck_input -> %lx\n", *chunck_input);
-	*key = key_split[1];
-	*key <<= 28;
-	*key |= key_split[0];
-	
-	// return (output);
+	*key = ((uint64_t)key_split[0] << 28) | key_split[1];
 }
 
 char	*DESPadding(char *to_encrypt, size_t *len_to_enc)
@@ -315,51 +238,29 @@ char	*DESPadding(char *to_encrypt, size_t *len_to_enc)
 
 bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 {
-	// printf("DESRoutine(data(%p), *runner(%p) -> [%s], *to_encrypt(%p) -> [%s])\n", data, runner, runner, to_encrypt, to_encrypt);
 	(void)runner;
 	char		*res = NULL;
-	// char		*tmp = NULL;
-	// char		tmp1[9] = {0};
 	uint64_t	chunck_input = 0;
 	uint64_t	key = 0;
 	size_t		len_to_enc = 0;
 
-	// /* --- BASE 64--- */
-	// if (data->options & B64)
-	// {
-	// 	if (data->options & DECODE)
-	// 		res = base64_decode(to_encrypt);
-	// 	else if (data->options & ENCODE)
-	// 		res = base64_encode(to_encrypt);
-	// }
 	/* --- PAD TO_ENCRYPT --- */
-	// printf("to_encrypt == [%s]", to_encrypt);
 	to_encrypt = DESPadding(to_encrypt, &len_to_enc);
 	/* --- CIPHER ALGO --- */
-	for (uint32_t i = 0; i < 24; i += 8)
+	for (uint32_t i = 0; to_encrypt[i]; i += 8)
 	{
-		printf("========= Chunck %d =============\n", i);
 		write(STDOUT_FILENO, to_encrypt + i, 8);
 		write(STDOUT_FILENO, "\n", 1);
 		key = data->key;
 		memcpy(&chunck_input, to_encrypt + i, 8);
-		printf("chunck %3d == %lx | key == %lx\n", i, chunck_input, key);
+		chunck_input = bswap_64(chunck_input);
 		chunck_input = DESInitial_permutation(chunck_input);
 		DESPermuted_1(&key);
 		for (uint8_t j = 0; j < 16; j++)
-		{
-			printf("--------- Round %d -------------\n", j);
-			printf("Round Start: chunck = %16lx | key = %lx\n", chunck_input, key);
 			DESRound(&chunck_input, &key, j);
-			printf("Round End  : chunck = %16lx | key = %lx\n", chunck_input, key);
-		}
 		chunck_input = (chunck_input >> 32 ) | (chunck_input << 32);
-		printf("Chunck End : chunck = %16lx | key = %lx\n", chunck_input, key);
 		chunck_input = DESInverse_initial_permutation(chunck_input);
-		printf("Chunck End : chunck = %16lx | key = %lx\n", chunck_input, key);
-		// memcpy(tmp1, &chunck_input, 8);
-		printf("%lx", chunck_input);
-		printf("\n");
+		printf("%016lx", chunck_input);
 	}
 	printf("\n");
 	free(res);

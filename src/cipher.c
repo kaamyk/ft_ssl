@@ -37,7 +37,7 @@ bool	cphr_exec(t_data *data, t_algo_fn f)
 		{
 			if (f(data, "stdin", data->in))
 				exit_err_code(data, EX_OSERR);
-			free(data->in);
+			// free(data->in);
 		}
 		data->options &= ~(READ_IN);
 	}
