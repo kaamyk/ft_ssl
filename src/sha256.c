@@ -288,7 +288,7 @@ int		SHA256FinalBits(t_SHA256_CTX *context, const uint8_t message_bits, unsigned
  * Returns:
  *   sha Error Code.
  */
-uint8_t	SHA256Result(t_SHA256_CTX *context, uint8_t *Message_Digest)
+uint8_t	SHA256Result(t_SHA256_CTX *context, uint8_t Message_Digest[SHA256_HSSZ])
 {
 	if (!context)
 		return (shaNull);

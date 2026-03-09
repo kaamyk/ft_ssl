@@ -253,7 +253,6 @@ bool	cphr_parser(t_data *data, char **argv)
 	//	-- OPTIONS --
 	while (*runner && **runner == '-' && !(data->options & (USAGE | STRING)))
 	{
-		printf("runner == [%s]\n", *runner);
 		runner = cphr_parse_opt(data, runner);
 		++runner;
 	}
