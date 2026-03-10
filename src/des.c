@@ -205,14 +205,9 @@ uint32_t	ft_mangler(uint64_t to_enc, uint64_t round_key)
 void	DESRound(uint64_t *chunck_input, uint64_t sub_key)
 {
 	uint64_t	output = 0;
-	// uint32_t	key_split[2] = {0};
 	uint32_t	chunck_split[2] = {0};
-	// uint64_t	round_key = 0;
 
 	memcpy(chunck_split, chunck_input, 8);
-	// key_split[0] = (*key >> 28) & 0xFFFFFFF;
-	// key_split[1] = (*key) & 0xFFFFFFF;
-	// key_scheduling(&key_split[0], &key_split[1], round, &round_key);
 	output = ft_mangler(*chunck_input, sub_key);
 	*chunck_input = chunck_split[0];
 	*chunck_input <<= 32;
@@ -225,7 +220,7 @@ char	*DESPadding(char *to_encrypt, size_t *len_to_enc)
 	char	*to_enc_pad = NULL;
 	char	pad = 0;
 	
-	*len_to_enc = strlen(to_encrypt);
+	// *len_to_enc = strlen(to_encrypt);
 	if (*len_to_enc % 8)
 		pad = 8 - (*len_to_enc % 8);
 	to_enc_pad = malloc(*len_to_enc + pad + 1);
@@ -285,27 +280,22 @@ char	*DESSetupInput(t_data *data, char *to_encrypt, size_t *len_to_enc)
 bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 {
 	(void)runner;
-	char		*res = NULL;
+	uint64_t	*full_output = NULL;
+	char		*buf = NULL;
 	uint64_t	chunck_input = 0;
 	uint64_t	sub_keys[16] = {0};
-	size_t		len_to_enc = 0;
+	size_t		len_to_enc = strlen(to_encrypt);
 	
+	if ((data->options & B64) && data->options & DECODE)
+	{
+		buf = to_encrypt;
+		to_encrypt = base64_decode(to_encrypt, len_to_enc);
+		free(buf);
+	}
+	full_output = calloc(len_to_enc + (8 - len_to_enc % 8), sizeof(char));
 	generate_sub_keys(sub_keys, data->key);
 	/* --- PAD / HEX-DECODE INPUT --- */
 	to_encrypt = DESSetupInput(data, to_encrypt, &len_to_enc);
-	// if (data->options & ENCODE)
-	// 	to_encrypt = DESPadding(to_encrypt, &len_to_enc);
-	// else
-	// {
-	// 	len_to_enc = strlen(to_encrypt) / 2;
-	// 	for (size_t k = 0; k < len_to_enc; k++)
-	// 	{
-	// 		uint8_t hi = strchr(HEXABASE, toupper((unsigned char)to_encrypt[k * 2])) - HEXABASE;
-	// 		uint8_t lo = strchr(HEXABASE, toupper((unsigned char)to_encrypt[k * 2 + 1])) - HEXABASE;
-	// 		to_encrypt[k] = (char)((hi << 4) | lo);
-	// 	}
-	// 	to_encrypt[len_to_enc] = 0;
-	// }
 	/* --- CIPHER ALGO --- */
 	for (size_t i = 0; i < len_to_enc; i += 8)
 	{
@@ -314,23 +304,22 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 		chunck_input = DESInitial_permutation(chunck_input);
 		if (data->options & ENCODE)
 			DESEncryptLoop(&chunck_input, sub_keys);
-		else
+		else if (data->options & DECODE)
 			DESDecryptLoop(&chunck_input, sub_keys);
 		chunck_input = (chunck_input >> 32) | (chunck_input << 32);
 		chunck_input = DESInverse_initial_permutation(chunck_input);
-		if (data->options & ENCODE)
-			printf("%016lx", chunck_input);
-		else
-		{
-			chunck_input = bswap_64(chunck_input);
-			write(STDOUT_FILENO, &chunck_input, 8);
-		}
+		printf("%016lx\n", chunck_input);
+		chunck_input = bswap_64(chunck_input);
+		memcpy((char *)full_output + i, &chunck_input, 8);
 	}
-	if (data->options & ENCODE)
-		printf("\n");
+	if (data->options & B64 && data->options & ENCODE)
+		buf = base64_encode((char *)full_output, len_to_enc);
 	else
-		write(STDOUT_FILENO, "\n", 1);
-	free(res);
+		buf = (char *) full_output;
+	if (cphr_display(buf, strlen(buf)))
+		exit_err_code(data, EX_OSERR);
+	free(buf);
 	free(to_encrypt);
+	free(full_output);
 	return (EXIT_SUCCESS);
 }

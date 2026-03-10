@@ -167,32 +167,23 @@ char	**cphr_parse_opt(t_data *data, char **runner)
 				data->options |= USAGE;
 				break;
 			case 'k':
-				// if (!cphr_parse_hexa_input(*(runner + 1)))	// next string pointer
-				// 	data->raw_key = *(++runner);
-				// else
-				// 	exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", *(runner + 1), data->algo, data, EX_USAGE);
 				data->raw_key = *(++runner);
+				for (uint8_t i = 0; data->raw_key[i]; i++)
+					data->raw_key[i] = toupper(data->raw_key[i]);
 				break ;
 			case 'p':
-				// if (!cphr_parse_pw(*(runner + 1)))
-				// 	data->password = *(++runner);
-				// else
 					exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", *(runner + 1), data->algo, data, EX_USAGE);
 				data->password = *(++runner);
 				break ;
 			case 's':
-				// if (!cphr_parse_hexa_input(*(runner + 1)))	// next string pointer
-				// 	data->salt = *(++runner);
-				// else
-				// 	exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", *(runner + 1), data->algo, data, EX_USAGE);
 				data->salt = *(++runner);
+				for (uint8_t i = 0; data->raw_key[i]; i++)
+					data->salt[i] = toupper(data->salt[i]);
 				break ;
 			case 'v':
-				// if (!cphr_parse_hexa_input(*(runner + 1)))	// next string pointer
-				// 	data->init_vector = *(++runner);
-				// else
-				// 	exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", *(runner + 1), data->algo, data, EX_USAGE);
 				data->init_vector = *(++runner);
+				for (uint8_t i = 0; data->init_vector[i]; i++)
+					data->init_vector[i] = toupper(data->init_vector[i]);
 				break ;
 			default:
 				exit_err_mess_opt2("ft_ssl: '%s': unvalid option. Run './ft_ssl %s -h for usage.", *runner, data->algo, data, EX_USAGE);

@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <malloc.h>
 #include <stdbool.h>
 #include <errno.h>
 #include <stdio.h>
@@ -53,7 +54,7 @@ enum
 #define READ_IN	1 << read_in
 #define B64		1 << base64
 
-#define BASE64STR	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+#define BASE64STR	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 #define HEXABASE	"0123456789ABCDEF"
 
 #define SHA256_HSSZ 32
@@ -139,7 +140,7 @@ void	print_ssl_usage(t_data *data);
 void	print_dgst_usage(t_data *data);
 void	print_cphr_usage(t_data *data);
 bool	dgst_display(const uint8_t digest[16], uint16_t options, const char *filename, const char *to_hash, const char *algoname, const uint8_t hssz);
-bool	cphr_display(char *cipher);
+bool	cphr_display(char *cipher, size_t cipher_l);
 
 // ft_strjoin.c
 char	*ft_strjoin(char const *s1, char const *s2);
@@ -167,8 +168,8 @@ bool	MDRoutine(t_data *data, char *runner, char *to_hash);
 // bool	MDMain(t_data *data);
 
 //	base64.c
-char	*base64_encode(const char *input);
-char	*base64_decode(const char *input);
+char	*base64_encode(const char *input, const size_t input_l);
+char	*base64_decode(const char *input, const size_t input_l);
 bool 	B64Routine(t_data *data, char *runner, char *to_hash);
 
 //	des.c

@@ -34,9 +34,8 @@ size_t		ft_strlcpy(char *dest, const char *src, size_t size)
 	return (srclen);
 }
 
-char		*base64_encode(const char *input)
+char		*base64_encode(const char *input, const size_t input_l)
 {
-	const uint32_t	input_l = strlen(input);
 	const uint32_t	alloc_l = (((input_l / 3) + need_pad(input_l)) * 4);
 	uint32_t	tmp = 0;
 	char		*res = NULL;
@@ -52,19 +51,18 @@ char		*base64_encode(const char *input)
 		{
 			tmp = 0;
 			for (uint8_t j = 0; j < 3 && i + j < input_l; j++)
-					tmp |= input[i + j] << (16 - (j * 8));
+				tmp |= (uint8_t)input[i + j] << (16 - (j * 8));
 			res[k] = get_base_char(tmp >> 18);
 			res[k + 1] = get_base_char(tmp >> 12);
-			res[k + 2] = (tmp >> 6) & 0x3F ? get_base_char(tmp >> 6) : '=';
-			res[k + 3] = tmp & 0x3F ? get_base_char(tmp) : '=';
+			res[k + 2] = (input_l - i > 1) ? get_base_char(tmp >> 6) : '=';
+			res[k + 3] = (input_l - i > 2) ? get_base_char(tmp) : '=';
 		}
 	}
 	return (res);
 }
 
-char	*base64_decode(const char *input)
+char	*base64_decode(const char *input, const size_t input_l)
 {
-	const uint32_t	input_l = strlen(input);
 	const uint32_t	alloc_l = ((input_l / 4) * 3);
 	uint32_t	tmp = 0;
 	char		*res = NULL;
@@ -95,12 +93,12 @@ bool 	B64Routine(t_data *data, char *runner, char *to_hash)
 	char	*res = NULL;
 	
 	if (data->options & DECODE)
-		res = base64_decode(to_hash);
+		res = base64_decode(to_hash, strlen(to_hash));
 	else if (data->options & ENCODE)
-		res = base64_encode(to_hash);
+		res = base64_encode(to_hash, strlen(to_hash));
 	else
 		res = strdup(to_hash);
-	if (cphr_display(res))
+	if (cphr_display(res, strlen(res)))
 		return (EXIT_FAILURE);
 	free(res);
 	return (EXIT_SUCCESS);

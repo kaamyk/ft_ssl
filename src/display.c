@@ -143,15 +143,16 @@ bool	dgst_display(const uint8_t digest[16], uint16_t options, const char *filena
 /* 		CIPHER		 */
 /* ================= */
 
-bool	cphr_display(char *cipher)
+bool	cphr_display(char *cipher, size_t cipher_l)
 {
 	char	*runner = cipher;
 	char	*last = 0;
 	
 	if (runner)
-		last = runner + strlen(cipher);
+		last = runner + cipher_l;
 	else
 		return (EXIT_FAILURE);
+	fflush(stdout);
 	while (*runner && last - runner >= 64)
 	{
 		if (write(STDOUT_FILENO, runner, 64) < 0
