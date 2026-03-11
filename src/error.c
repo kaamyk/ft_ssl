@@ -64,3 +64,9 @@ bool	ret_err_mess_opt(const char *mess, const char *opt)
 	fprintf(stderr, mess, opt);
 	return (EXIT_FAILURE);
 }
+
+void	*ret_err_mess_ptr(const char *mess)
+{
+	fprintf(stderr, "%s\n", mess);
+	return (NULL);
+}

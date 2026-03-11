@@ -304,33 +304,25 @@ uint8_t	SHA256Result(t_SHA256_CTX *context, uint8_t Message_Digest[SHA256_HSSZ])
 	return (shaSuccess);
 }
 
-bool	SHARoutine(t_data *data, char *runner, char *to_hash)
+bool	SHAAlgo(uint8_t digest[SHA256_HSSZ], uint8_t *to_hash)
 {
 	t_SHA256_CTX	context = {0};
-	uint8_t	digest[SHA256_HSSZ] = {0};
 	
 	if (SHA256Reset(&context))
 		ret_err_mess("ft_ssl: sha256: Reset err");
-	else if (SHA256Input(&context, (const uint8_t *)to_hash, strlen(to_hash)))
+	else if (SHA256Input(&context, to_hash, strlen((char *)to_hash)))
 		ret_err_mess("ft_ssl: sha256: Input err");
 	else if (SHA256Result(&context, (uint8_t *)digest))
 		ret_err_mess("ft_ssl: sha256: Result err");
-	dgst_display(digest, data->options, runner, to_hash, "SHA256", SHA256_HSSZ);
 	return (EXIT_SUCCESS);
 }
 
-bool	SHAMain(t_data *data)
+bool	SHARoutine(t_data *data, char *runner, char *to_hash)
 {
-	char	**runner = data->inputs;
-	char	*to_hash = NULL;
+	uint8_t	digest[SHA256_HSSZ] = {0};
 	
-	if (data->options & DECODE)
-		exit_err_mess("ft_ssl: SHA256: '-d' option invalide option.", data, EX_USAGE);
-	while (*runner)
-	{
-		if (SHARoutine(data, *runner, to_hash))
-			exit_err_code(data, EX_SOFTWARE);
-		++runner;
-	}
+	if (SHAAlgo(digest, (uint8_t *) to_hash)
+		|| dgst_display(digest, data->options, runner, to_hash, "SHA256", SHA256_HSSZ))
+		return (EXIT_FAILURE);
 	return (EXIT_SUCCESS);
 }

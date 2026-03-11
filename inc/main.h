@@ -119,6 +119,7 @@ bool	ret_err_mess_code(const char *mess, const int errnum);
 bool	ret_err_mess(const char *mess);
 bool	ret_err_mess_opt(const char *mess, const char *opt);
 void	exit_err_mess_opt2(const char *mess, const char *opt, const char *opt1, t_data *data, const uint8_t ret_value);
+void	*ret_err_mess_ptr(const char *mess);
 
 //	utils.c
 uint32_t	rotate_left(uint8_t bits, uint32_t word);
@@ -153,9 +154,9 @@ bool	cphr_parser(t_data *data, char **argv);
 extern int		SHA256Reset(t_SHA256_CTX *);
 extern int		SHA256Input(t_SHA256_CTX *, const uint8_t *bytes, unsigned int bytecount);
 extern int		SHA256FinalBits(t_SHA256_CTX *, const uint8_t bits, unsigned int bitcount);
-extern uint8_t	SHA256Result(t_SHA256_CTX *, uint8_t Message_Digest[SHA256_HSSZ]);// 
+extern uint8_t	SHA256Result(t_SHA256_CTX *, uint8_t Message_Digest[SHA256_HSSZ]);//
+bool			SHAAlgo(uint8_t digest[SHA256_HSSZ], uint8_t *to_hash);
 bool			SHARoutine(t_data *data, char *runner, char *to_hash);
-// bool			SHAMain(t_data *data);
 
 //	md5.c
 void	MD5Init(t_MD5_CTX *context);
@@ -171,6 +172,11 @@ bool	MDRoutine(t_data *data, char *runner, char *to_hash);
 char	*base64_encode(const char *input, const size_t input_l);
 char	*base64_decode(const char *input, const size_t input_l);
 bool 	B64Routine(t_data *data, char *runner, char *to_hash);
+
+//	hmac.c
+bool	HMACMain(t_data *data, uint8_t digest[SHA256_HSSZ])
+
+//	pbkdf2.c
 
 //	des.c
 bool 	DESRoutine(t_data *data, char *runner, char *to_encrypt);
