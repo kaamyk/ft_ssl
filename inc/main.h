@@ -15,6 +15,7 @@
 #include <string.h>
 #include <sysexits.h>
 #include <byteswap.h>
+#include <math.h>
 
 enum
 {
@@ -72,11 +73,21 @@ typedef struct	s_data
 	uint64_t	key;
 	char		*password;
 	char		*salt;
+	size_t		salt_len;
 	char		*init_vector;
 	char		**inputs;
 	char		*in_file;
 	char		*out_file;
 }				t_data;
+
+typedef struct	s_pbkdf2
+{
+	char		*password;
+	char		*salt;
+	size_t		salt_l;
+	uint32_t	dk_len;
+	uint32_t	c;
+}				t_pbkdf2;
 
 typedef bool (*t_cmd_fn)(t_data *, char **);
 typedef struct	s_cmd
@@ -120,6 +131,7 @@ bool	ret_err_mess(const char *mess);
 bool	ret_err_mess_opt(const char *mess, const char *opt);
 void	exit_err_mess_opt2(const char *mess, const char *opt, const char *opt1, t_data *data, const uint8_t ret_value);
 void	*ret_err_mess_ptr(const char *mess);
+void	*ret_err_mess_code_ptr(const char *mess, const int errnum);
 
 //	utils.c
 uint32_t	rotate_left(uint8_t bits, uint32_t word);
@@ -155,7 +167,7 @@ extern int		SHA256Reset(t_SHA256_CTX *);
 extern int		SHA256Input(t_SHA256_CTX *, const uint8_t *bytes, unsigned int bytecount);
 extern int		SHA256FinalBits(t_SHA256_CTX *, const uint8_t bits, unsigned int bitcount);
 extern uint8_t	SHA256Result(t_SHA256_CTX *, uint8_t Message_Digest[SHA256_HSSZ]);//
-bool			SHAAlgo(uint8_t digest[SHA256_HSSZ], uint8_t *to_hash);
+bool			SHAAlgo(uint8_t digest[SHA256_HSSZ], uint8_t *to_hash, const size_t to_hash_l);
 bool			SHARoutine(t_data *data, char *runner, char *to_hash);
 
 //	md5.c
@@ -174,9 +186,12 @@ char	*base64_decode(const char *input, const size_t input_l);
 bool 	B64Routine(t_data *data, char *runner, char *to_hash);
 
 //	hmac.c
-bool	HMACMain(t_data *data, uint8_t digest[SHA256_HSSZ])
+uint8_t	*HMAC256(char *key, uint8_t *message, size_t message_l);
+// uint8_t	*HMACMain(char *key, char *message);
+// bool	HMACMain(t_data *data, uint8_t digest[SHA256_HSSZ])
 
 //	pbkdf2.c
+uint8_t	*PBKDF2(t_pbkdf2 l_data, uint8_t *hmacfn(char *, uint8_t *, size_t));
 
 //	des.c
 bool 	DESRoutine(t_data *data, char *runner, char *to_encrypt);

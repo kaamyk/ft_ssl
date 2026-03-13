@@ -14,13 +14,15 @@ void	HMACPad_key(uint8_t key[64], uint8_t pad_keys[2][64])
 
 bool	HMACSetup_key(uint8_t pad_keys[2][64], char *input_pass)
 {
-	const size_t	input_l = strlen(input_pass);
-	uint8_t			digest[SHA256_HSSZ] = {0};
-	uint8_t			formated_key[64] = {0};
-	
+	size_t		input_l = 0;
+	uint8_t		digest[SHA256_HSSZ] = {0};
+	uint8_t		formated_key[64] = {0};
+
+	if (input_pass)
+		input_l = strlen(input_pass);
 	if (input_l > 64)
 	{
-		if (SHAAlgo(digest, input_pass))
+		if (SHAAlgo(digest, (uint8_t *)input_pass, input_l))
 			return (EXIT_FAILURE);
 		memcpy(formated_key, digest, SHA256_HSSZ);
 	}
@@ -30,27 +32,30 @@ bool	HMACSetup_key(uint8_t pad_keys[2][64], char *input_pass)
 	return (EXIT_SUCCESS);
 }
 
-bool	HMACMain(t_data *data, uint8_t digest[SHA256_HSSZ])
+// HMAC(K, m) = H( (K' ⊕ opad) ‖ H( (K' ⊕ ipad) ‖ m ) )
+uint8_t	*HMAC256(char *key, uint8_t *message, size_t message_l)
 {
-	uint8_t *message = (uint8_t *)*data->inputs;
-	size_t	message_l = strlen(*data->inputs);
 	uint8_t	pad_keys[2][64] = {0};
 	uint8_t	*inner = NULL;
 	uint8_t	outer[96] = {0}; // size = pad_keys[1] (64 bytes) + 32 bytes (sha256 output)
-	
-	if (HMACSetup_key(pad_keys, data->password))
-		exit_err_code(data, EX_OSERR);
-	
+	uint8_t	*digest = calloc(SHA256_HSSZ + 1, sizeof(uint8_t));
+
+	if (digest == NULL)
+		return (ret_err_mess_code_ptr("ft_ssl: HMAC:", errno));
+	if (HMACSetup_key(pad_keys, key))
+		return (ret_err_mess_ptr("ft_ssl: HMAC: Setup failed. Leaving."));
+
 	// Inner => Concatenate padded key & message
-	inner = malloc(64 + message_l + 1);
+	inner = malloc(64 + message_l);
 	memcpy(inner, pad_keys[0], 64);
 	memcpy(inner + 64, message, message_l);
-	SHAAlgo(digest, inner);
-	
-	// Outer => Concatenate SHS256 output & pad_keys[1] (key ^ Opad)
+	SHAAlgo(digest, inner, 64 + message_l);
+
+	// Outer => Concatenate SHA256 output & pad_keys[1] (key ^ Opad)
 	memcpy(outer, pad_keys[1], 64);
 	memcpy(outer + 64, digest, 32);
-	SHAAlgo(digest, outer);
-	
-	return (EXIT_SUCCESS);
+	SHAAlgo(digest, outer, 96);
+
+	free(inner);
+	return (digest);
 }

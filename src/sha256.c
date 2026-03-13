@@ -304,13 +304,13 @@ uint8_t	SHA256Result(t_SHA256_CTX *context, uint8_t Message_Digest[SHA256_HSSZ])
 	return (shaSuccess);
 }
 
-bool	SHAAlgo(uint8_t digest[SHA256_HSSZ], uint8_t *to_hash)
+bool	SHAAlgo(uint8_t digest[SHA256_HSSZ], uint8_t *to_hash, const size_t to_hash_l)
 {
 	t_SHA256_CTX	context = {0};
 	
 	if (SHA256Reset(&context))
 		ret_err_mess("ft_ssl: sha256: Reset err");
-	else if (SHA256Input(&context, to_hash, strlen((char *)to_hash)))
+	else if (SHA256Input(&context, to_hash, to_hash_l))
 		ret_err_mess("ft_ssl: sha256: Input err");
 	else if (SHA256Result(&context, (uint8_t *)digest))
 		ret_err_mess("ft_ssl: sha256: Result err");
@@ -321,7 +321,7 @@ bool	SHARoutine(t_data *data, char *runner, char *to_hash)
 {
 	uint8_t	digest[SHA256_HSSZ] = {0};
 	
-	if (SHAAlgo(digest, (uint8_t *) to_hash)
+	if (SHAAlgo(digest, (uint8_t *) to_hash, strlen(to_hash))
 		|| dgst_display(digest, data->options, runner, to_hash, "SHA256", SHA256_HSSZ))
 		return (EXIT_FAILURE);
 	return (EXIT_SUCCESS);

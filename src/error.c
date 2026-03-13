@@ -70,3 +70,9 @@ void	*ret_err_mess_ptr(const char *mess)
 	fprintf(stderr, "%s\n", mess);
 	return (NULL);
 }
+
+void	*ret_err_mess_code_ptr(const char *mess, const int errnum)
+{
+	fprintf(stderr, "%s: %s(%d)\n", mess, strerror(errnum), errnum);
+	return (NULL);
+}

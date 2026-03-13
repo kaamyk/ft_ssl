@@ -285,7 +285,14 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 	uint64_t	chunck_input = 0;
 	uint64_t	sub_keys[16] = {0};
 	size_t		len_to_enc = strlen(to_encrypt);
+	t_pbkdf2	l_data = {
+		.password = data->password, .salt = data->salt,
+		.salt_l = data->salt_len, .dk_len = 8, .c = 1000
+	};
 	
+	//	Generate key if not in args
+	if (!data->raw_key)
+		data->key = (uint64_t)PBKDF2(l_data, HMAC256);
 	if ((data->options & B64) && data->options & DECODE)
 	{
 		buf = to_encrypt;
