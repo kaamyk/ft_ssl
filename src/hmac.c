@@ -14,12 +14,10 @@ void	HMACPad_key(uint8_t key[64], uint8_t pad_keys[2][64])
 
 bool	HMACSetup_key(uint8_t pad_keys[2][64], char *input_pass)
 {
-	size_t		input_l = 0;
-	uint8_t		digest[SHA256_HSSZ] = {0};
-	uint8_t		formated_key[64] = {0};
+	const size_t	input_l = strlen(input_pass);
+	uint8_t			digest[SHA256_HSSZ] = {0};
+	uint8_t			formated_key[64] = {0};
 
-	if (input_pass)
-		input_l = strlen(input_pass);
 	if (input_l > 64)
 	{
 		if (SHAAlgo(digest, (uint8_t *)input_pass, input_l))
@@ -32,7 +30,6 @@ bool	HMACSetup_key(uint8_t pad_keys[2][64], char *input_pass)
 	return (EXIT_SUCCESS);
 }
 
-// HMAC(K, m) = H( (K' ⊕ opad) ‖ H( (K' ⊕ ipad) ‖ m ) )
 uint8_t	*HMAC256(char *key, uint8_t *message, size_t message_l)
 {
 	uint8_t	pad_keys[2][64] = {0};

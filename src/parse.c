@@ -101,10 +101,7 @@ char	**cphr_parse_opt(t_data *data, char **runner)
 			case 'i':
 				data->options |= IN_FILE;
 				if (*(runner + 1) && **(runner + 1) != '-') // next ptr
-				{
 					data->in_file = *(++runner);
-					// data->options &= ~(IN_FILE);
-				}
 				else
 					exit_err_mess_opt("ft_ssl: '%s': invalid argument. Run './ft_ssl -h for usage.", *runner, data, EX_USAGE);
 				break ;
@@ -138,13 +135,10 @@ char	**cphr_parse_opt(t_data *data, char **runner)
 					data->raw_key[i] = toupper(data->raw_key[i]);
 				break ;
 			case 'p':
-					exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", *(runner + 1), data->algo, data, EX_USAGE);
 				data->password = *(++runner);
 				break ;
 			case 's':
-				data->salt = *(++runner);
-				for (uint8_t i = 0; data->raw_key[i]; i++)
-					data->salt[i] = toupper(data->salt[i]);
+				data->raw_salt = *(++runner);
 				break ;
 			case 'v':
 				data->init_vector = *(++runner);
@@ -178,13 +172,20 @@ void	cphr_parse_opt_args(t_data *data)
 	}
 	if (data->password)
 	{
-		if (cphr_parse_hexa_input(data->password))
-			exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", data->password, data->algo, data, EX_USAGE);
+		for (uint32_t i = 0; data->password[i]; i++)
+		{
+			if (!isascii(data->password[i]))
+				exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", data->password, data->algo, data, EX_USAGE);
+		}
 	}
 	if (data->salt)
 	{
-		if (cphr_parse_hexa_input(data->salt))
-			exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", data->salt, data->algo, data, EX_USAGE);
+		for (uint8_t i = 0; data->raw_salt[i]; i++)
+			data->raw_salt[i] = toupper(data->raw_salt[i]);
+		if (cphr_parse_hexa_input(data->raw_salt))
+			exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", data->raw_salt, data->algo, data, EX_USAGE);
+		data->salt = strtoull(data->raw_salt, NULL, 16);
+		data->salt_len = ceil(strlen(data->raw_salt) / 2);
 	}
 	if (data->init_vector)
 	{
@@ -216,7 +217,7 @@ bool	cphr_parser(t_data *data, char **argv)
 	cphr_parse_opt_args(data);
 	if (!algo && !(data->options & USAGE))
 		exit_err_mess("ft_ssl: no agorithm. Run \"./ft_ssl -h\" for usage\n", data, EX_USAGE);
-	else if (!(data->options & B64) && !data->raw_key)
+	else if (!(data->options & B64) && !data->raw_key && !data->password && !data->salt)
 		exit_err_mess("ft_ssl: missing key. Run \"./ft_ssl -h\" for usage\n", data, EX_USAGE);
 	if (*runner)
 		data->inputs = runner;

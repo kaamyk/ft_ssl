@@ -34,7 +34,6 @@ int main( int argc, char **argv )
 		if (!strcmp(cmds[i].name, data.algo))
 			return(cmds[i].fn(&data, argv));
 	}
-	printf("data.in == %p\n", data.in);
 	if (data.in)
 	{
 		bzero(&data, sizeof(t_data));

@@ -280,19 +280,26 @@ char	*DESSetupInput(t_data *data, char *to_encrypt, size_t *len_to_enc)
 bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 {
 	(void)runner;
-	uint64_t	*full_output = NULL;
 	char		*buf = NULL;
+	uint8_t		*kdf_res = NULL;
+	uint64_t	*full_output = NULL;
+	size_t		buf_l = 0;
 	uint64_t	chunck_input = 0;
 	uint64_t	sub_keys[16] = {0};
 	size_t		len_to_enc = strlen(to_encrypt);
 	t_pbkdf2	l_data = {
 		.password = data->password, .salt = data->salt,
-		.salt_l = data->salt_len, .dk_len = 8, .c = 1000
+		.salt_l = data->salt_len, .dk_len = 8, .c = 10000
 	};
 	
 	//	Generate key if not in args
 	if (!data->raw_key)
-		data->key = (uint64_t)PBKDF2(l_data, HMAC256);
+	{
+		kdf_res = PBKDF2(l_data, HMAC256);
+		if (malloc_usable_size(kdf_res) == 8)
+			memcpy(&data->key, kdf_res, 8);
+		free(kdf_res);
+	}
 	if ((data->options & B64) && data->options & DECODE)
 	{
 		buf = to_encrypt;
@@ -320,13 +327,20 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 		memcpy((char *)full_output + i, &chunck_input, 8);
 	}
 	if (data->options & B64 && data->options & ENCODE)
+	{
 		buf = base64_encode((char *)full_output, len_to_enc);
+		buf_l = strlen(buf);
+	}
 	else
+	{
 		buf = (char *) full_output;
-	if (cphr_display(buf, strlen(buf)))
+		buf_l = 8;
+	}
+	if (cphr_display(buf, buf_l))
 		exit_err_code(data, EX_OSERR);
+	if ((char *)full_output != buf)
+		free(full_output);
 	free(buf);
 	free(to_encrypt);
-	free(full_output);
 	return (EXIT_SUCCESS);
 }

@@ -72,7 +72,8 @@ typedef struct	s_data
 	char		*raw_key;
 	uint64_t	key;
 	char		*password;
-	char		*salt;
+	uint64_t	salt;
+	char		*raw_salt;
 	size_t		salt_len;
 	char		*init_vector;
 	char		**inputs;
@@ -83,7 +84,7 @@ typedef struct	s_data
 typedef struct	s_pbkdf2
 {
 	char		*password;
-	char		*salt;
+	uint64_t	salt;
 	size_t		salt_l;
 	uint32_t	dk_len;
 	uint32_t	c;
