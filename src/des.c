@@ -296,8 +296,12 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 	if (!data->raw_key)
 	{
 		kdf_res = PBKDF2(l_data, HMAC256);
-		if (malloc_usable_size(kdf_res) == 8)
+		// if (malloc_usable_size(kdf_res) == 32)
+		if (kdf_res)
+		{
 			memcpy(&data->key, kdf_res, 8);
+			data->key = __bswap_64(data->key);
+		}
 		free(kdf_res);
 	}
 	if ((data->options & B64) && data->options & DECODE)
@@ -322,7 +326,7 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 			DESDecryptLoop(&chunck_input, sub_keys);
 		chunck_input = (chunck_input >> 32) | (chunck_input << 32);
 		chunck_input = DESInverse_initial_permutation(chunck_input);
-		printf("%016lx\n", chunck_input);
+		// printf("%016lx\n", chunck_input);
 		chunck_input = bswap_64(chunck_input);
 		memcpy((char *)full_output + i, &chunck_input, 8);
 	}

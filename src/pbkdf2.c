@@ -26,7 +26,10 @@ uint8_t	*PBKDF2(t_pbkdf2 l_data, uint8_t *hmacfn(char *, uint8_t *, size_t))
 	if (conc_salt == NULL)
 		return (ret_err_mess_code_ptr("ft_ssl: PBKDF2:", errno));
 	if (l_data.salt)
-		memcpy(conc_salt, l_data.salt, l_data.salt_l);
+	{
+		uint64_t swapped_salt = __bswap_64(l_data.salt);
+		memcpy(conc_salt, &swapped_salt, l_data.salt_l);
+	}
 	for (uint32_t i = 1; i <= l; i++)
 	{
 		// RFC specifies Big Endian encoding of block index

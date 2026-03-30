@@ -178,7 +178,7 @@ void	cphr_parse_opt_args(t_data *data)
 				exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", data->password, data->algo, data, EX_USAGE);
 		}
 	}
-	if (data->salt)
+	if (data->raw_salt)
 	{
 		for (uint8_t i = 0; data->raw_salt[i]; i++)
 			data->raw_salt[i] = toupper(data->raw_salt[i]);

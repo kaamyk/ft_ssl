@@ -9,22 +9,25 @@ bool	cphr_setup(t_data *data, char **argv)
 	data->options |= ENCODE;
 	if (cphr_parser(data, argv))
 		return (EXIT_FAILURE);
-	if (!(data->options & ~(DECODE | ENCODE | B64)))
+	if (!(data->options & ~(DECODE | ENCODE | B64))) // if no other flags are set
 	{
 		data->options |= READ_IN;
 		if ((data->in = read_stdin()) == NULL)
 			return (ret_err_mess_code("ft_ssl: fatal error: %s\n", errno));
 		//	-- Delete whitespaces
 		len = strlen(data->in);
-		while (j < len)
+		if ((data->options & B64) && (data->options & DECODE))
 		{
-			while (data->in[j] && is_whitespace(data->in[j]))
+			while (j < len)
+			{
+				while (data->in[j] && is_whitespace(data->in[j]))
+					++j;
+				data->in[i] = data->in[j];
+				++i;
 				++j;
-			data->in[i] = data->in[j];
-			++i;
-			++j;
+			}
+			bzero(data->in + i, j - i);
 		}
-		bzero(data->in + i, j - i);
 	}
 	return (EXIT_SUCCESS);
 }
