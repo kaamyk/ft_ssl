@@ -276,6 +276,18 @@ char	*DESSetupInput(t_data *data, char *to_encrypt, size_t *len_to_enc)
 	return (to_encrypt);
 }
 
+uint64_t	DESSetupIV(const char *raw_init_vector)
+{
+	char		str_format[17] = {0};
+	uint64_t	res = 0;
+	
+	res = strlen(raw_init_vector);
+	if (res > 16)
+		res = 16;
+	memcpy(str_format, raw_init_vector, res);
+	res = atohex(str_format);
+	return (res);
+}
 
 bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 {
@@ -314,11 +326,17 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 	generate_sub_keys(sub_keys, data->key);
 	/* --- PAD / HEX-DECODE INPUT --- */
 	to_encrypt = DESSetupInput(data, to_encrypt, &len_to_enc);
+	/* --- INITIALIZATION VECTOR */
+	// if (data->raw_init_vector)
+	// 	data->init_vector = DESSetupIV(data->raw_init_vector);
 	/* --- CIPHER ALGO --- */
 	for (size_t i = 0; i < len_to_enc; i += 8)
 	{
 		memcpy(&chunck_input, to_encrypt + i, 8);
 		chunck_input = bswap_64(chunck_input);
+		/* --- INIT VECTOR --- */
+		if ((data->options & ENCODE) && data->init_vector)
+			chunck_input ^= data->init_vector;
 		chunck_input = DESInitial_permutation(chunck_input);
 		if (data->options & ENCODE)
 			DESEncryptLoop(&chunck_input, sub_keys);
@@ -326,11 +344,12 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 			DESDecryptLoop(&chunck_input, sub_keys);
 		chunck_input = (chunck_input >> 32) | (chunck_input << 32);
 		chunck_input = DESInverse_initial_permutation(chunck_input);
-		// printf("%016lx\n", chunck_input);
+		if ((data->options & DECODE) && data->init_vector)
+			chunck_input ^= data->init_vector;
 		chunck_input = bswap_64(chunck_input);
 		memcpy((char *)full_output + i, &chunck_input, 8);
 	}
-	if (data->options & B64 && data->options & ENCODE)
+	if ((data->options & B64) && (data->options & ENCODE))
 	{
 		buf = base64_encode((char *)full_output, len_to_enc);
 		buf_l = strlen(buf);
@@ -338,7 +357,8 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 	else
 	{
 		buf = (char *) full_output;
-		buf_l = 8;
+		buf_l = len_to_enc;
+		// buf_l = 8;
 	}
 	if (cphr_display(buf, buf_l))
 		exit_err_code(data, EX_OSERR);

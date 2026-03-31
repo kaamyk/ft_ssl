@@ -66,7 +66,7 @@ uint64_t	atohex(char *str)
 	uint64_t	res = 0;
 	char		*ptr = str;
 	
-	while (*ptr)
+	while (*ptr && ptr - str < 16)
 	{
 		res = (res << 4) | (strchr(HEXABASE, *ptr) - HEXABASE);
 		++ptr;

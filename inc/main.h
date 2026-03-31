@@ -75,7 +75,8 @@ typedef struct	s_data
 	uint64_t	salt;
 	char		*raw_salt;
 	size_t		salt_len;
-	char		*init_vector;
+	char		*raw_init_vector;
+	uint64_t	init_vector;
 	char		**inputs;
 	char		*in_file;
 	char		*out_file;

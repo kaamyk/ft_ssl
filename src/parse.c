@@ -141,9 +141,9 @@ char	**cphr_parse_opt(t_data *data, char **runner)
 				data->raw_salt = *(++runner);
 				break ;
 			case 'v':
-				data->init_vector = *(++runner);
-				for (uint8_t i = 0; data->init_vector[i]; i++)
-					data->init_vector[i] = toupper(data->init_vector[i]);
+				data->raw_init_vector = *(++runner);
+				for (uint8_t i = 0; data->raw_init_vector[i]; i++)
+					data->raw_init_vector[i] = toupper(data->raw_init_vector[i]);
 				break ;
 			default:
 				exit_err_mess_opt2("ft_ssl: '%s': unvalid option. Run './ft_ssl %s -h for usage.", *runner, data->algo, data, EX_USAGE);
@@ -187,10 +187,10 @@ void	cphr_parse_opt_args(t_data *data)
 		data->salt = strtoull(data->raw_salt, NULL, 16);
 		data->salt_len = ceil(strlen(data->raw_salt) / 2);
 	}
-	if (data->init_vector)
+	if (data->raw_init_vector)
 	{
-		if (cphr_parse_hexa_input(data->init_vector))
-			exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", data->init_vector, data->algo, data, EX_USAGE);
+		if (cphr_parse_hexa_input(data->raw_init_vector))
+			exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", data->raw_init_vector, data->algo, data, EX_USAGE);
 	}
 }
 
