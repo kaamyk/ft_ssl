@@ -289,16 +289,10 @@ uint64_t	DESSetupIV(const char *raw_init_vector)
 	return (res);
 }
 
-bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
+void	DESSetup(uint64_t **full_output, uint64_t sub_keys[16], size_t *len_to_enc, char **to_encrypt, t_data *data)
 {
-	(void)runner;
 	char		*buf = NULL;
 	uint8_t		*kdf_res = NULL;
-	uint64_t	*full_output = NULL;
-	size_t		buf_l = 0;
-	uint64_t	chunck_input = 0;
-	uint64_t	sub_keys[16] = {0};
-	size_t		len_to_enc = strlen(to_encrypt);
 	t_pbkdf2	l_data = {
 		.password = data->password, .salt = data->salt,
 		.salt_l = data->salt_len, .dk_len = 8, .c = 10000
@@ -318,17 +312,28 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 	}
 	if ((data->options & B64) && data->options & DECODE)
 	{
-		buf = to_encrypt;
-		to_encrypt = base64_decode(to_encrypt, len_to_enc);
+		buf = *to_encrypt;
+		*to_encrypt = base64_decode(*to_encrypt, *len_to_enc);
 		free(buf);
 	}
-	full_output = calloc(len_to_enc + (8 - len_to_enc % 8), sizeof(char));
+	*full_output = calloc(*len_to_enc + (8 - (*len_to_enc % 8)), sizeof(char));
 	generate_sub_keys(sub_keys, data->key);
 	/* --- PAD / HEX-DECODE INPUT --- */
-	to_encrypt = DESSetupInput(data, to_encrypt, &len_to_enc);
-	/* --- INITIALIZATION VECTOR */
-	// if (data->raw_init_vector)
-	// 	data->init_vector = DESSetupIV(data->raw_init_vector);
+	*to_encrypt = DESSetupInput(data, *to_encrypt, len_to_enc);
+	
+}
+
+bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
+{
+	(void)runner;
+	char		*buf = NULL;
+	uint64_t	*full_output = NULL;
+	size_t		buf_l = 0;
+	uint64_t	chunck_input = 0;
+	uint64_t	sub_keys[16] = {0};
+	size_t		len_to_enc = strlen(to_encrypt);
+	
+	DESSetup(&full_output, sub_keys, &len_to_enc, &to_encrypt, data);
 	/* --- CIPHER ALGO --- */
 	for (size_t i = 0; i < len_to_enc; i += 8)
 	{
