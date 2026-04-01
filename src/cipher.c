@@ -12,7 +12,7 @@ bool	cphr_setup(t_data *data, char **argv)
 	if (!(data->options & ~(DECODE | ENCODE | B64))) // if no other flags are set
 	{
 		data->options |= READ_IN;
-		if ((data->in = read_stdin()) == NULL)
+		if ((data->in = read_stdin(&data->in_len)) == NULL)
 			return (ret_err_mess_code("ft_ssl: fatal error: %s\n", errno));
 		//	-- Delete whitespaces
 		len = strlen(data->in);
@@ -27,6 +27,7 @@ bool	cphr_setup(t_data *data, char **argv)
 				++j;
 			}
 			bzero(data->in + i, j - i);
+			data->in_len = strlen(data->in);
 		}
 	}
 	return (EXIT_SUCCESS);

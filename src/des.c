@@ -219,12 +219,11 @@ char	*DESPadding(char *to_encrypt, size_t *len_to_enc)
 {
 	char	*to_enc_pad = NULL;
 	char	pad = 0;
-	
+
 	// *len_to_enc = strlen(to_encrypt);
-	if (*len_to_enc % 8)
-		pad = 8 - (*len_to_enc % 8);
+	pad = 8 - (*len_to_enc % 8);
 	to_enc_pad = malloc(*len_to_enc + pad + 1);
-	strcpy(to_enc_pad, to_encrypt);
+	memcpy(to_enc_pad, to_encrypt, *len_to_enc);
 	memset(to_enc_pad + *len_to_enc, pad, pad);
 	*len_to_enc += pad;
 	to_enc_pad[*len_to_enc] = 0;
@@ -262,17 +261,17 @@ char	*DESSetupInput(t_data *data, char *to_encrypt, size_t *len_to_enc)
 {
 	if (data->options & ENCODE)
 		to_encrypt = DESPadding(to_encrypt, len_to_enc);
-	else
-	{
-		*len_to_enc = strlen(to_encrypt) / 2;
-		for (size_t k = 0; k < *len_to_enc; k++)
-		{
-			uint8_t hi = strchr(HEXABASE, toupper((uint8_t)to_encrypt[k * 2])) - HEXABASE;
-			uint8_t lo = strchr(HEXABASE, toupper((uint8_t)to_encrypt[k * 2 + 1])) - HEXABASE;
-			to_encrypt[k] = (char)((hi << 4) | lo);
-		}
-		to_encrypt[*len_to_enc] = 0;
-	}
+	// else
+	// {
+	// 	*len_to_enc = strlen(to_encrypt) / 2;
+	// 	for (size_t k = 0; k < *len_to_enc; k++)
+	// 	{
+	// 		uint8_t hi = strchr(HEXABASE, toupper((uint8_t)to_encrypt[k * 2])) - HEXABASE;
+	// 		uint8_t lo = strchr(HEXABASE, toupper((uint8_t)to_encrypt[k * 2 + 1])) - HEXABASE;
+	// 		to_encrypt[k] = (char)((hi << 4) | lo);
+	// 	}
+	// 	to_encrypt[*len_to_enc] = 0;
+	// }
 	return (to_encrypt);
 }
 
@@ -280,7 +279,7 @@ uint64_t	DESSetupIV(const char *raw_init_vector)
 {
 	char		str_format[17] = {0};
 	uint64_t	res = 0;
-	
+
 	res = strlen(raw_init_vector);
 	if (res > 16)
 		res = 16;
@@ -291,13 +290,15 @@ uint64_t	DESSetupIV(const char *raw_init_vector)
 
 void	DESSetup(uint64_t **full_output, uint64_t sub_keys[16], size_t *len_to_enc, char **to_encrypt, t_data *data)
 {
-	char		*buf = NULL;
+	char	*b64_input = NULL;
+	size_t	b64_len = 0;
+	size_t	pad_count = 0;
 	uint8_t		*kdf_res = NULL;
 	t_pbkdf2	l_data = {
 		.password = data->password, .salt = data->salt,
 		.salt_l = data->salt_len, .dk_len = 8, .c = 10000
 	};
-	
+
 	//	Generate key if not in args
 	if (!data->raw_key)
 	{
@@ -312,33 +313,87 @@ void	DESSetup(uint64_t **full_output, uint64_t sub_keys[16], size_t *len_to_enc,
 	}
 	if ((data->options & B64) && data->options & DECODE)
 	{
-		buf = *to_encrypt;
-		*to_encrypt = base64_decode(*to_encrypt, *len_to_enc);
-		free(buf);
+		b64_input = *to_encrypt;
+		b64_len = *len_to_enc;
+		if (b64_len >= 2)
+		{
+			if (b64_input[b64_len - 1] == '=') pad_count++;
+			if (b64_input[b64_len - 2] == '=') pad_count++;
+		}
+		*to_encrypt = base64_decode(b64_input, b64_len);
+		free(b64_input);
+		*len_to_enc = (b64_len / 4) * 3 - pad_count;
 	}
 	*full_output = calloc(*len_to_enc + (8 - (*len_to_enc % 8)), sizeof(char));
 	generate_sub_keys(sub_keys, data->key);
 	/* --- PAD / HEX-DECODE INPUT --- */
-	*to_encrypt = DESSetupInput(data, *to_encrypt, len_to_enc);
+	if (!((data->options & B64) && (data->options & DECODE)))
+		*to_encrypt = DESSetupInput(data, *to_encrypt, len_to_enc);
+	/* --- INITIALIZATION VECTOR */
+	if (data->raw_init_vector)
+		data->init_vector = DESSetupIV(data->raw_init_vector);
+
+}
+
+void	DESOuput(t_data *data, uint64_t *full_output, char *to_encrypt, size_t len_to_enc)
+{
+	char	*buf = NULL;
+	size_t	buf_l = 0;
 	
+	/* --- OUTPUT --- */
+	int out_fd = STDOUT_FILENO;
+	if (data->out_file)
+	{
+		out_fd = open(data->out_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		if (out_fd < 0)
+			exit_err_code(data, EX_OSERR);
+	}
+	if ((data->options & B64) && (data->options & ENCODE))
+	{
+		buf = base64_encode((char *)full_output, len_to_enc);
+		buf_l = strlen(buf);
+		char *runner = buf;
+		char *last_b64 = buf + buf_l;
+		while (last_b64 - runner >= 64)
+		{
+			write(out_fd, runner, 64);
+			write(out_fd, "\n", 1);
+			runner += 64;
+		}
+		if (runner < last_b64)
+		{
+			write(out_fd, runner, last_b64 - runner);
+			write(out_fd, "\n", 1);
+		}
+		free(full_output);
+		free(buf);
+	}
+	else
+	{
+		write(out_fd, full_output, len_to_enc);
+		free(full_output);
+	}
+	if (out_fd != STDOUT_FILENO)
+		close(out_fd);
+	free(to_encrypt);
 }
 
 bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 {
 	(void)runner;
-	char		*buf = NULL;
 	uint64_t	*full_output = NULL;
-	size_t		buf_l = 0;
 	uint64_t	chunck_input = 0;
 	uint64_t	sub_keys[16] = {0};
-	size_t		len_to_enc = strlen(to_encrypt);
-	
+	uint64_t	next_iv = 0;	/* save ciphertext for CBC decrypt IV */
+	size_t		len_to_enc = data->in_len ? data->in_len : strlen(to_encrypt);
+
 	DESSetup(&full_output, sub_keys, &len_to_enc, &to_encrypt, data);
 	/* --- CIPHER ALGO --- */
 	for (size_t i = 0; i < len_to_enc; i += 8)
 	{
 		memcpy(&chunck_input, to_encrypt + i, 8);
 		chunck_input = bswap_64(chunck_input);
+		next_iv = chunck_input;	/* save ciphertext for CBC decrypt IV */
 		/* --- INIT VECTOR --- */
 		if ((data->options & ENCODE) && data->init_vector)
 			chunck_input ^= data->init_vector;
@@ -351,25 +406,23 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 		chunck_input = DESInverse_initial_permutation(chunck_input);
 		if ((data->options & DECODE) && data->init_vector)
 			chunck_input ^= data->init_vector;
+		if (data->raw_init_vector)
+		{
+			if (data->options & ENCODE)
+				data->init_vector = chunck_input;	/* big-endian ciphertext, before bswap */
+			else
+				data->init_vector = next_iv;		/* original ciphertext block */
+		}
 		chunck_input = bswap_64(chunck_input);
 		memcpy((char *)full_output + i, &chunck_input, 8);
 	}
-	if ((data->options & B64) && (data->options & ENCODE))
+	/* --- PKCS7 UNPADDING (decrypt) --- */
+	if (data->options & DECODE)
 	{
-		buf = base64_encode((char *)full_output, len_to_enc);
-		buf_l = strlen(buf);
+		uint8_t pad = ((uint8_t *)full_output)[len_to_enc - 1];
+		if (pad > 0 && pad <= 8)
+			len_to_enc -= pad;
 	}
-	else
-	{
-		buf = (char *) full_output;
-		buf_l = len_to_enc;
-		// buf_l = 8;
-	}
-	if (cphr_display(buf, buf_l))
-		exit_err_code(data, EX_OSERR);
-	if ((char *)full_output != buf)
-		free(full_output);
-	free(buf);
-	free(to_encrypt);
+	DESOuput(data, full_output, to_encrypt, len_to_enc);
 	return (EXIT_SUCCESS);
 }

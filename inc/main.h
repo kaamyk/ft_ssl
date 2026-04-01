@@ -80,6 +80,7 @@ typedef struct	s_data
 	char		**inputs;
 	char		*in_file;
 	char		*out_file;
+	size_t		in_len;
 }				t_data;
 
 typedef struct	s_pbkdf2
@@ -147,7 +148,7 @@ char	*file_to_str(const char *filename);
 uint64_t	atohex(char *str);
 
 //	stdin.c
-char 	*read_stdin( void );
+char 	*read_stdin(size_t *len_out);
 bool	is_in_pipe( void );
 
 //	display.c
@@ -200,10 +201,6 @@ bool 	DESRoutine(t_data *data, char *runner, char *to_encrypt);
 
 //	routine.c
 void	routine(t_data *data);
-
-//	stdin.c
-char 	*read_stdin( void );
-bool	is_in_pipe( void );
 
 //	digest.c
 bool	dgst_main(t_data *data, char **argv);

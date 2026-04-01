@@ -10,7 +10,7 @@ bool	dgst_setup(t_data *data, char **argv)
 		|| (data->inputs && (data->options & PRINT)))
 	{
 		data->options |= READ_IN;
-		if ((data->in = read_stdin()) == NULL)
+		if ((data->in = read_stdin(&data->in_len)) == NULL)
 			return (ret_err_mess_code("ft_ssl: fatal error: %s\n", errno));
 	}
 	return (EXIT_SUCCESS);

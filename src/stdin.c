@@ -1,27 +1,36 @@
 #include "../inc/main.h"
 
-char 	*read_stdin( void )
+char 	*read_stdin(size_t *len_out)
 {
-	char		buf[256] = {0};
-	char	*tmp = NULL;
+	char	buf[256];
 	char	*input = calloc(1, 1);
+	char	*tmp = NULL;
+	size_t	total = 0;
+	size_t	nread = 0;
+
 	if (input == NULL)
 	{
 		fprintf(stderr, "Fatal Error: calloc: %s\n", strerror(errno));
 		return (NULL);
 	}
-	
-	while (fread(buf, 1, 255, stdin) > 0)
+	while ((nread = fread(buf, 1, 255, stdin)) > 0)
 	{
-		tmp = input;
-		if ((input = ft_strjoin(input, buf)) == NULL)
+		tmp = malloc(total + nread + 1);
+		if (tmp == NULL)
 		{
-			fprintf(stderr, "Fatal Error: ft_strjoin(): %s\n", strerror(errno));
+			fprintf(stderr, "Fatal Error: malloc: %s\n", strerror(errno));
+			free(input);
 			return (NULL);
 		}
-		free(tmp);
-		bzero((char *) buf, 256);
+		memcpy(tmp, input, total);
+		memcpy(tmp + total, buf, nread);
+		total += nread;
+		tmp[total] = 0;
+		free(input);
+		input = tmp;
 	}
+	if (len_out)
+		*len_out = total;
 	return (input);
 }
 

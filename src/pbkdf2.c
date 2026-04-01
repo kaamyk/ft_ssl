@@ -21,7 +21,7 @@ uint8_t	*PBKDF2(t_pbkdf2 l_data, uint8_t *hmacfn(char *, uint8_t *, size_t))
 	uint8_t		*u = NULL;
 	uint8_t		*prev_u = NULL;
 	uint8_t		*t = NULL;
-	uint8_t		*conc_salt = malloc(l_data.salt_l + 4);
+	uint8_t		*conc_salt = calloc(l_data.salt_l + 4, 1);
 
 	if (conc_salt == NULL)
 		return (ret_err_mess_code_ptr("ft_ssl: PBKDF2:", errno));
