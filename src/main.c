@@ -3,7 +3,8 @@
 int main( int argc, char **argv )
 {
 	(void) argc;
-	t_data	data = {0};
+	srand(time(NULL));
+	t_data	data = {.salt = ((uint64_t)rand() << 32 | rand())};
 	static const t_cmd	cmds[] = {
 		{"md5", dgst_main}, 
 		{"sha256", dgst_main},

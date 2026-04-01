@@ -16,6 +16,7 @@
 #include <sysexits.h>
 #include <byteswap.h>
 #include <math.h>
+#include <time.h>
 
 enum
 {
@@ -39,7 +40,8 @@ enum
 	in_file,
 	out_file,
 	read_in,
-	base64
+	base64,
+	pwprint
 };
 
 #define DGST	1 << digest
@@ -54,6 +56,7 @@ enum
 #define OUT_FILE 1 << out_file
 #define READ_IN	1 << read_in
 #define B64		1 << base64
+#define PWP		1 << pwprint
 
 #define BASE64STR	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 #define HEXABASE	"0123456789ABCDEF"

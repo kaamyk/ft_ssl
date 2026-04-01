@@ -4,10 +4,8 @@ bool	dgst_setup(t_data *data, char **argv)
 {
 	if (dgst_parser(data, argv))
 		return (EXIT_FAILURE);
-	// if ((!data->inputs && !(data->options & ~(PRINT)))
-	// 	|| ((!data->inputs || (data->options & (PRINT))) && is_in_pipe()))
 	if ( !data->inputs
-		|| (data->inputs && (data->options & PRINT)))
+	  || (data->inputs && (data->options & PRINT)))
 	{
 		data->options |= READ_IN;
 		if ((data->in = read_stdin(&data->in_len)) == NULL)

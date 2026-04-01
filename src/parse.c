@@ -145,6 +145,9 @@ char	**cphr_parse_opt(t_data *data, char **runner)
 				for (uint8_t i = 0; data->raw_init_vector[i]; i++)
 					data->raw_init_vector[i] = toupper(data->raw_init_vector[i]);
 				break ;
+			case 'P':
+				data->options |= PWP;
+				break ;
 			default:
 				exit_err_mess_opt2("ft_ssl: '%s': unvalid option. Run './ft_ssl %s -h for usage.", *runner, data->algo, data, EX_USAGE);
 				break ;
@@ -217,7 +220,9 @@ bool	cphr_parser(t_data *data, char **argv)
 	cphr_parse_opt_args(data);
 	if (!algo && !(data->options & USAGE))
 		exit_err_mess("ft_ssl: no agorithm. Run \"./ft_ssl -h\" for usage\n", data, EX_USAGE);
-	else if (!(data->options & B64) && !data->raw_key && !data->password && !data->salt)
+	else if (!(data->options & B64)
+		  && !data->raw_key && !data->password && !data->salt
+		  && !(data->options & PWP))
 		exit_err_mess("ft_ssl: missing key. Run \"./ft_ssl -h\" for usage\n", data, EX_USAGE);
 	if (*runner)
 		data->inputs = runner;

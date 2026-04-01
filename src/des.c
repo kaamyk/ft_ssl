@@ -261,17 +261,6 @@ char	*DESSetupInput(t_data *data, char *to_encrypt, size_t *len_to_enc)
 {
 	if (data->options & ENCODE)
 		to_encrypt = DESPadding(to_encrypt, len_to_enc);
-	// else
-	// {
-	// 	*len_to_enc = strlen(to_encrypt) / 2;
-	// 	for (size_t k = 0; k < *len_to_enc; k++)
-	// 	{
-	// 		uint8_t hi = strchr(HEXABASE, toupper((uint8_t)to_encrypt[k * 2])) - HEXABASE;
-	// 		uint8_t lo = strchr(HEXABASE, toupper((uint8_t)to_encrypt[k * 2 + 1])) - HEXABASE;
-	// 		to_encrypt[k] = (char)((hi << 4) | lo);
-	// 	}
-	// 	to_encrypt[*len_to_enc] = 0;
-	// }
 	return (to_encrypt);
 }
 
@@ -302,12 +291,18 @@ void	DESSetup(uint64_t **full_output, uint64_t sub_keys[16], size_t *len_to_enc,
 	//	Generate key if not in args
 	if (!data->raw_key)
 	{
+		if ((data->options & PWP) && !data->password && !data->raw_salt)
+		{
+			printf("LALA\n");
+			l_data.password = getpass("enter des-ecb encryption password:");
+		}
 		kdf_res = PBKDF2(l_data, HMAC256);
-		// if (malloc_usable_size(kdf_res) == 32)
 		if (kdf_res)
 		{
 			memcpy(&data->key, kdf_res, 8);
 			data->key = __bswap_64(data->key);
+			if (data->options & PWP)
+				printf("salt=%016lX\nkey=%016lX\n", data->salt, data->key);
 		}
 		free(kdf_res);
 	}
@@ -388,6 +383,8 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 	size_t		len_to_enc = data->in_len ? data->in_len : strlen(to_encrypt);
 
 	DESSetup(&full_output, sub_keys, &len_to_enc, &to_encrypt, data);
+	if (data->options & PWP)
+		return (EXIT_SUCCESS);
 	/* --- CIPHER ALGO --- */
 	for (size_t i = 0; i < len_to_enc; i += 8)
 	{

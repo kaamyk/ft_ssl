@@ -9,7 +9,7 @@ bool	cphr_setup(t_data *data, char **argv)
 	data->options |= ENCODE;
 	if (cphr_parser(data, argv))
 		return (EXIT_FAILURE);
-	if (!(data->options & ~(DECODE | ENCODE | B64))) // if no other flags are set
+	if (!(data->options & ~(DECODE | ENCODE | B64 | PWP))) // if no other flags are set
 	{
 		data->options |= READ_IN;
 		if ((data->in = read_stdin(&data->in_len)) == NULL)
@@ -41,7 +41,6 @@ bool	cphr_exec(t_data *data, t_algo_fn f)
 		{
 			if (f(data, "stdin", data->in))
 				exit_err_code(data, EX_OSERR);
-			// free(data->in);
 		}
 		data->options &= ~(READ_IN);
 	}
