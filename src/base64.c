@@ -39,10 +39,10 @@ char		*base64_encode(const char *input, const size_t input_l)
 	const uint32_t	alloc_l = (((input_l / 3) + need_pad(input_l)) * 4);
 	uint32_t	tmp = 0;
 	char		*res = NULL;
-	
+
 	if(!input_l)
 		res = calloc(1, 1);
-	else 
+	else
 	{
 		res = calloc(alloc_l + 1, 1);
 		if (!res)
@@ -66,10 +66,10 @@ char	*base64_decode(const char *input, const size_t input_l)
 	const uint32_t	alloc_l = ((input_l / 4) * 3);
 	uint32_t	tmp = 0;
 	char		*res = NULL;
-	
+
 	if(!input_l)
 		res = calloc(1, 1);
-	else 
+	else
 	{
 		res = calloc(alloc_l + 1, 1);
 		if (!res)
@@ -91,7 +91,7 @@ bool 	B64Routine(t_data *data, char *runner, char *to_hash)
 {
 	(void)runner;
 	char	*res = NULL;
-	
+
 	if (data->options & DECODE)
 		res = base64_decode(to_hash, strlen(to_hash));
 	else if (data->options & ENCODE)

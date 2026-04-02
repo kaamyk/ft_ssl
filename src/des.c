@@ -8,7 +8,7 @@ void left_circular_shift(uint32_t *input, const uint8_t round)
 		*input = ((*input << 2) | (*input >> 26)) & 0xFFFFFFF;
 }
 
-uint8_t	DESs_box(uint8_t input, const uint8_t boxno)
+uint8_t	des_s_box(uint8_t input, const uint8_t boxno)
 {
 	const uint8_t	y = ((input >> 5) & 1UL) << 1 | (input & 1UL);
 	const uint8_t	x = (input >> 1) & 0xF;
@@ -67,7 +67,7 @@ uint8_t	DESs_box(uint8_t input, const uint8_t boxno)
 	return(tab[boxno][y][x]);
 }
 
-uint64_t	DESPermute(uint64_t input, const uint8_t *tab, const size_t tab_len, size_t in_bits)
+uint64_t	des_permute(uint64_t input, const uint8_t *tab, const size_t tab_len, size_t in_bits)
 {
 	uint64_t	res = 0;
 	uint8_t		src = 0;
@@ -82,7 +82,7 @@ uint64_t	DESPermute(uint64_t input, const uint8_t *tab, const size_t tab_len, si
 	return (res);
 }
 
-uint32_t	DESp_box(uint32_t input)
+uint32_t	des_p_box(uint32_t input)
 {
 	uint8_t	tab[32] = {
 		16,  7, 20, 21, 29, 12, 28, 17,
@@ -91,10 +91,10 @@ uint32_t	DESp_box(uint32_t input)
 		19, 13, 30,  6, 22, 11,  4, 25
 	};
 
-	return (input = DESPermute(input, tab, 32, 32));
+	return (des_permute(input, tab, 32, 32));
 }
 
-uint64_t	DESInitial_permutation(uint64_t input)
+uint64_t	des_initial_permutation(uint64_t input)
 {
 	uint8_t	tab[64] = {
 		58, 50, 42, 34, 26, 18, 10, 2,
@@ -107,10 +107,10 @@ uint64_t	DESInitial_permutation(uint64_t input)
 		63, 55, 47, 39, 31, 23, 15, 7
 	};
 
-	return (input = DESPermute(input, tab, 64, 64));
+	return (des_permute(input, tab, 64, 64));
 }
 
-uint64_t	DESInverse_initial_permutation(uint64_t input)
+uint64_t	des_inverse_initial_permutation(uint64_t input)
 {
 	uint8_t	tab[64] = {
 		40, 8, 48, 16, 56, 24, 64, 32,
@@ -122,10 +122,11 @@ uint64_t	DESInverse_initial_permutation(uint64_t input)
 		34, 2, 42, 10, 50, 18, 58, 26,
 		33, 1, 41, 9, 49, 17, 57, 25
 	};
-	return (input = DESPermute(input, tab, 64, 64));
+
+	return (des_permute(input, tab, 64, 64));
 }
 
-void	DESPermuted_1(uint64_t *input)		// 64 bits -> 56 bits
+void	des_permuted_1(uint64_t *input)		// 64 bits -> 56 bits
 {
 	uint8_t	tab[56] = {
 		57, 49, 41, 33, 25, 17,  9,  1,
@@ -137,10 +138,10 @@ void	DESPermuted_1(uint64_t *input)		// 64 bits -> 56 bits
 		29, 21, 13,  5, 28, 20, 12,  4
 	};
 
-	*input = DESPermute(*input, tab, 56, 64);
+	*input = des_permute(*input, tab, 56, 64);
 }
 
-void	DESPermuted_2(uint64_t *input)		// 56 bits -> 48 bits
+void	des_permuted_2(uint64_t *input)		// 56 bits -> 48 bits
 {
 	uint8_t	tab[48] = {
 		14, 17, 11, 24,  1,  5,  3, 28,
@@ -150,13 +151,11 @@ void	DESPermuted_2(uint64_t *input)		// 56 bits -> 48 bits
 		51, 45, 33, 48, 44, 49, 39, 56,
 		34, 53, 46, 42, 50, 36, 29, 32
 	};
-	*input = DESPermute(*input, tab, 48, 56);
+	*input = des_permute(*input, tab, 48, 56);
 }
 
-uint64_t	DESExpansion(uint32_t input)
+uint64_t	des_expansion(uint32_t input)
 {
-	uint64_t	res = 0;
-	uint32_t	bit = 0;
 	uint8_t		tab[48] = {
 		32,  1,  2,  3,  4,  5,
 		 4,  5,  6,  7,  8,  9,
@@ -168,12 +167,13 @@ uint64_t	DESExpansion(uint32_t input)
 		28, 29, 30, 31, 32,  1
 	};
 
-	for (size_t i = 0; i < 48; i++)
-	{
-		bit = (input >> (32 - 1 - (tab[i] - 1))) & 1U;
-		res = (res << 1) | bit;
-	}
-	return (res);
+	return (des_permute(input, tab, 48, 32));
+	// for (size_t i = 0; i < 48; i++)
+	// {
+	// 	bit = (input >> (32 - 1 - (tab[i] - 1))) & 1U;
+	// 	res = (res << 1) | bit;
+	// }
+	// return (res);
 }
 
 void	key_scheduling(uint32_t *key_left, uint32_t *key_right, const uint8_t round, uint64_t *round_key)
@@ -185,7 +185,7 @@ void	key_scheduling(uint32_t *key_left, uint32_t *key_right, const uint8_t round
 	left_circular_shift(key_right, round);
 	/* 2 * 28-bit => 56-bit */
 	tmp = ((uint64_t)*key_left << 28) | *key_right;
-	DESPermuted_2(&tmp);
+	des_permuted_2(&tmp);
 	/* uint64_t => 48-bit */
 	*round_key = tmp;
 }
@@ -196,13 +196,14 @@ uint32_t	ft_mangler(uint64_t to_enc, uint64_t round_key)
 	uint32_t	res = 0;
 	uint64_t	xored = 0;
 
-	xored = DESExpansion(enc_right) ^ round_key;
-	for (uint8_t i = 0; i < 8; i++)
-		res |= (uint32_t)DESs_box((xored >> (42 - i * 6)) & 0x3F, i) << (28 - (i * 4));
-	return (DESp_box(res));
+	xored = des_expansion(enc_right) ^ round_key;
+	for (uint8_t i = 0; i < 8; i++)		// Split the 48-bit in 8 6-bit chunck to send to S-Box
+		res |= (uint32_t)des_s_box((xored >> (42 - i * 6)) & 0x3F, i) << (28 - (i * 4));
+	//	res |= des_s_box(6-bit value from xored , round nb) << its place
+	return (des_p_box(res));
 }
 
-void	DESRound(uint64_t *chunck_input, uint64_t sub_key)
+void	des_round(uint64_t *chunck_input, uint64_t sub_key)
 {
 	uint64_t	output = 0;
 	uint32_t	chunck_split[2] = {0};
@@ -212,10 +213,9 @@ void	DESRound(uint64_t *chunck_input, uint64_t sub_key)
 	*chunck_input = chunck_split[0];
 	*chunck_input <<= 32;
 	*chunck_input |= (output & 0xFFFFFFFF) ^ chunck_split[1];
-	// *key = ((uint64_t)key_split[0] << 28) | key_split[1];
 }
 
-char	*DESPadding(char *to_encrypt, size_t *len_to_enc)
+char	*des_padding(char *to_encrypt, size_t *len_to_enc)
 {
 	char	*to_enc_pad = NULL;
 	char	pad = 0;
@@ -231,23 +231,23 @@ char	*DESPadding(char *to_encrypt, size_t *len_to_enc)
 	return (to_enc_pad);
 }
 
-void	DESEncryptLoop(uint64_t *chunck_input, uint64_t sub_keys[16])
+void	des_encrypt_loop(uint64_t *chunck_input, uint64_t sub_keys[16])
 {
 	for (uint8_t j = 0; j < 16; j++)
-		DESRound(chunck_input, sub_keys[j]);
+		des_round(chunck_input, sub_keys[j]);
 }
 
-void	DESDecryptLoop(uint64_t *chunck_input, uint64_t sub_keys[16])
+void	des_decrypt_loop(uint64_t *chunck_input, uint64_t sub_keys[16])
 {
 	for (int8_t j = 15; j >= 0; j--)
-		DESRound(chunck_input, sub_keys[j]);
+		des_round(chunck_input, sub_keys[j]);
 }
 
 void	generate_sub_keys(uint64_t sub_keys[16], uint64_t key)
 {
 	uint32_t	key_split[2] = {0};
 
-	DESPermuted_1(&key);
+	des_permuted_1(&key);
 	for(uint8_t i = 0; i < 16; i++)
 	{
 		key_split[0] = (key >> 28) & 0xFFFFFFF;
@@ -257,14 +257,14 @@ void	generate_sub_keys(uint64_t sub_keys[16], uint64_t key)
 	}
 }
 
-char	*DESSetupInput(t_data *data, char *to_encrypt, size_t *len_to_enc)
+char	*des_setup_input(t_data *data, char *to_encrypt, size_t *len_to_enc)
 {
 	if (data->options & ENCODE)
-		to_encrypt = DESPadding(to_encrypt, len_to_enc);
+		to_encrypt = des_padding(to_encrypt, len_to_enc);
 	return (to_encrypt);
 }
 
-uint64_t	DESSetupIV(const char *raw_init_vector)
+uint64_t	des_setup_iv(const char *raw_init_vector)
 {
 	char		str_format[17] = {0};
 	uint64_t	res = 0;
@@ -277,12 +277,46 @@ uint64_t	DESSetupIV(const char *raw_init_vector)
 	return (res);
 }
 
-void	DESSetup(uint64_t **full_output, uint64_t sub_keys[16], size_t *len_to_enc, char **to_encrypt, t_data *data)
+void	des_generate_key(t_data *data, t_pbkdf2 *l_data)
+{
+	uint8_t		*kdf_res = NULL;
+
+	if ((data->options & PWP) && !data->password && !data->raw_salt)
+		l_data->password = getpass("enter des-ecb encryption password:");
+	kdf_res = PBKDF2(*l_data, HMAC256);
+	if (kdf_res)
+	{
+		memcpy(&data->key, kdf_res, 8);
+		data->key = __bswap_64(data->key);
+		if (data->options & PWP)
+			printf("salt=%016lX\nkey=%016lX\n", data->salt, data->key);
+	}
+	free(kdf_res);
+	if ((data->options & PWP) && !data->password && !data->raw_salt		// if l_data->password alloced
+		&& l_data->password)
+		free(l_data->password);
+}
+
+void	des_decode_b64_input(char **to_encrypt, size_t *len_to_enc)
 {
 	char	*b64_input = NULL;
 	size_t	b64_len = 0;
 	size_t	pad_count = 0;
-	uint8_t		*kdf_res = NULL;
+
+	b64_input = *to_encrypt;
+	b64_len = *len_to_enc;
+	if (b64_len >= 2)
+	{
+		if (b64_input[b64_len - 1] == '=') pad_count++;
+		if (b64_input[b64_len - 2] == '=') pad_count++;
+	}
+	*to_encrypt = base64_decode(b64_input, b64_len);
+	free(b64_input);
+	*len_to_enc = (b64_len / 4) * 3 - pad_count;
+}
+
+void	des_setup(uint64_t **full_output, uint64_t sub_keys[16], size_t *len_to_enc, char **to_encrypt, t_data *data)
+{
 	t_pbkdf2	l_data = {
 		.password = data->password, .salt = data->salt,
 		.salt_l = data->salt_len, .dk_len = 8, .c = 10000
@@ -290,51 +324,24 @@ void	DESSetup(uint64_t **full_output, uint64_t sub_keys[16], size_t *len_to_enc,
 
 	//	Generate key if not in args
 	if (!data->raw_key)
-	{
-		if ((data->options & PWP) && !data->password && !data->raw_salt)
-		{
-			printf("LALA\n");
-			l_data.password = getpass("enter des-ecb encryption password:");
-		}
-		kdf_res = PBKDF2(l_data, HMAC256);
-		if (kdf_res)
-		{
-			memcpy(&data->key, kdf_res, 8);
-			data->key = __bswap_64(data->key);
-			if (data->options & PWP)
-				printf("salt=%016lX\nkey=%016lX\n", data->salt, data->key);
-		}
-		free(kdf_res);
-	}
+		des_generate_key(data, &l_data);
 	if ((data->options & B64) && data->options & DECODE)
-	{
-		b64_input = *to_encrypt;
-		b64_len = *len_to_enc;
-		if (b64_len >= 2)
-		{
-			if (b64_input[b64_len - 1] == '=') pad_count++;
-			if (b64_input[b64_len - 2] == '=') pad_count++;
-		}
-		*to_encrypt = base64_decode(b64_input, b64_len);
-		free(b64_input);
-		*len_to_enc = (b64_len / 4) * 3 - pad_count;
-	}
+		des_decode_b64_input(to_encrypt, len_to_enc);
 	*full_output = calloc(*len_to_enc + (8 - (*len_to_enc % 8)), sizeof(char));
 	generate_sub_keys(sub_keys, data->key);
 	/* --- PAD / HEX-DECODE INPUT --- */
 	if (!((data->options & B64) && (data->options & DECODE)))
-		*to_encrypt = DESSetupInput(data, *to_encrypt, len_to_enc);
+		*to_encrypt = des_setup_input(data, *to_encrypt, len_to_enc);
 	/* --- INITIALIZATION VECTOR */
 	if (data->raw_init_vector)
-		data->init_vector = DESSetupIV(data->raw_init_vector);
-
+		data->init_vector = des_setup_iv(data->raw_init_vector);
 }
 
-void	DESOuput(t_data *data, uint64_t *full_output, char *to_encrypt, size_t len_to_enc)
+void	des_output(t_data *data, uint64_t *full_output, char *to_encrypt, size_t len_to_enc)
 {
 	char	*buf = NULL;
 	size_t	buf_l = 0;
-	
+
 	/* --- OUTPUT --- */
 	int out_fd = STDOUT_FILENO;
 	if (data->out_file)
@@ -373,18 +380,11 @@ void	DESOuput(t_data *data, uint64_t *full_output, char *to_encrypt, size_t len_
 	free(to_encrypt);
 }
 
-bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
+void	des_loop(char *to_encrypt, const size_t len_to_enc, uint64_t **full_output, uint64_t sub_keys[16], t_data *data)
 {
-	(void)runner;
-	uint64_t	*full_output = NULL;
 	uint64_t	chunck_input = 0;
-	uint64_t	sub_keys[16] = {0};
-	uint64_t	next_iv = 0;	/* save ciphertext for CBC decrypt IV */
-	size_t		len_to_enc = data->in_len ? data->in_len : strlen(to_encrypt);
+	uint64_t	next_iv = 0;
 
-	DESSetup(&full_output, sub_keys, &len_to_enc, &to_encrypt, data);
-	if (data->options & PWP)
-		return (EXIT_SUCCESS);
 	/* --- CIPHER ALGO --- */
 	for (size_t i = 0; i < len_to_enc; i += 8)
 	{
@@ -394,13 +394,13 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 		/* --- INIT VECTOR --- */
 		if ((data->options & ENCODE) && data->init_vector)
 			chunck_input ^= data->init_vector;
-		chunck_input = DESInitial_permutation(chunck_input);
+		chunck_input = des_initial_permutation(chunck_input);
 		if (data->options & ENCODE)
-			DESEncryptLoop(&chunck_input, sub_keys);
+			des_encrypt_loop(&chunck_input, sub_keys);
 		else if (data->options & DECODE)
-			DESDecryptLoop(&chunck_input, sub_keys);
+			des_decrypt_loop(&chunck_input, sub_keys);
 		chunck_input = (chunck_input >> 32) | (chunck_input << 32);
-		chunck_input = DESInverse_initial_permutation(chunck_input);
+		chunck_input = des_inverse_initial_permutation(chunck_input);
 		if ((data->options & DECODE) && data->init_vector)
 			chunck_input ^= data->init_vector;
 		if (data->raw_init_vector)
@@ -411,8 +411,26 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 				data->init_vector = next_iv;		/* original ciphertext block */
 		}
 		chunck_input = bswap_64(chunck_input);
-		memcpy((char *)full_output + i, &chunck_input, 8);
+		memcpy((char *)*full_output + i, &chunck_input, 8);
 	}
+}
+
+bool	des_routine(t_data *data, char *runner, char *to_encrypt)
+{
+	(void)runner;
+	printf("to_encrypt == [%s]\n", to_encrypt);
+	uint64_t	*full_output = NULL;
+	uint64_t	sub_keys[16] = {0};
+	size_t		len_to_enc = data->in_len ? data->in_len : strlen(to_encrypt);
+
+	des_setup(&full_output, sub_keys, &len_to_enc, &to_encrypt, data);
+	if (data->options & PWP)
+	{
+		free(full_output);
+		free(to_encrypt);
+		return (EXIT_SUCCESS);
+	}
+	des_loop(to_encrypt, len_to_enc, &full_output, sub_keys, data);
 	/* --- PKCS7 UNPADDING (decrypt) --- */
 	if (data->options & DECODE)
 	{
@@ -420,6 +438,6 @@ bool	DESRoutine(t_data *data, char *runner, char *to_encrypt)
 		if (pad > 0 && pad <= 8)
 			len_to_enc -= pad;
 	}
-	DESOuput(data, full_output, to_encrypt, len_to_enc);
+	des_output(data, full_output, to_encrypt, len_to_enc);
 	return (EXIT_SUCCESS);
 }

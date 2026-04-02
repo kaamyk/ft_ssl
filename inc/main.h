@@ -200,7 +200,7 @@ uint8_t	*HMAC256(char *key, uint8_t *message, size_t message_l);
 uint8_t	*PBKDF2(t_pbkdf2 l_data, uint8_t *hmacfn(char *, uint8_t *, size_t));
 
 //	des.c
-bool 	DESRoutine(t_data *data, char *runner, char *to_encrypt);
+bool 	des_routine(t_data *data, char *runner, char *to_encrypt);
 
 //	routine.c
 void	routine(t_data *data);

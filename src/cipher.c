@@ -59,7 +59,7 @@ bool	cphr_main(t_data *data, char **argv)
 {
 	static const t_algo	ciphers[] = {
 		{"base64",	B64Routine	},
-		{"des",		DESRoutine	},
+		{"des",		des_routine	},
 		{NULL,		NULL		}
 	};
 	(void)argv;
