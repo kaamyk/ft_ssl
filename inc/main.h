@@ -41,7 +41,8 @@ enum
 	out_file,
 	read_in,
 	base64,
-	pwprint
+	pwprint,
+	pwread
 };
 
 #define DGST	1 << digest
@@ -57,6 +58,7 @@ enum
 #define READ_IN	1 << read_in
 #define B64		1 << base64
 #define PWP		1 << pwprint
+#define PWR		1 << pwread
 
 #define BASE64STR	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 #define HEXABASE	"0123456789ABCDEF"
@@ -209,6 +211,7 @@ void	routine(t_data *data);
 bool	dgst_main(t_data *data, char **argv);
 
 //	cipher.c
+char	*cphr_getstdin(uint16_t *options, size_t *len_out);
 bool	cphr_main(t_data *data, char **argv);
 
 //	main.c

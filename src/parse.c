@@ -100,6 +100,7 @@ char	**cphr_parse_opt(t_data *data, char **runner)
 		{
 			case 'i':
 				data->options |= IN_FILE;
+				data->options &= ~(READ_IN);
 				if (*(runner + 1) && **(runner + 1) != '-') // next ptr
 					data->in_file = *(++runner);
 				else
@@ -147,13 +148,12 @@ char	**cphr_parse_opt(t_data *data, char **runner)
 				break ;
 			case 'P':
 				data->options |= PWP;
+				data->options &= ~(READ_IN);
 				break ;
 			default:
 				exit_err_mess_opt2("ft_ssl: '%s': unvalid option. Run './ft_ssl %s -h for usage.", *runner, data->algo, data, EX_USAGE);
 				break ;
 		}
-		// else if (cphr_set_option(*runner, &data->options))
-		// 	exit_err_mess_opt2("ft_ssl: Invalid option '%s'. Run './ft_ssl %s -h' to print usage.\n", *runner, data->algo, data, EX_USAGE);
 	}
 	else 
 		exit_err_mess_opt2("ft_ssl: Invalid option. Run './ft_ssl %s -h' to print usage.\n", *runner, data->algo, data, EX_USAGE);
@@ -222,7 +222,9 @@ bool	cphr_parser(t_data *data, char **argv)
 		exit_err_mess("ft_ssl: no agorithm. Run \"./ft_ssl -h\" for usage\n", data, EX_USAGE);
 	else if (!(data->options & B64)
 		  && !data->raw_key && !data->password && !data->salt
-		  && !(data->options & PWP))
+		  && !(data->options & PWP)
+		  && !(data->options & READ_IN)
+		  && !(data->options & IN_FILE))
 		exit_err_mess("ft_ssl: missing key. Run \"./ft_ssl -h\" for usage\n", data, EX_USAGE);
 	if (*runner)
 		data->inputs = runner;

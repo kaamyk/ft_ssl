@@ -168,12 +168,6 @@ uint64_t	des_expansion(uint32_t input)
 	};
 
 	return (des_permute(input, tab, 48, 32));
-	// for (size_t i = 0; i < 48; i++)
-	// {
-	// 	bit = (input >> (32 - 1 - (tab[i] - 1))) & 1U;
-	// 	res = (res << 1) | bit;
-	// }
-	// return (res);
 }
 
 void	key_scheduling(uint32_t *key_left, uint32_t *key_right, const uint8_t round, uint64_t *round_key)
@@ -281,20 +275,15 @@ void	des_generate_key(t_data *data, t_pbkdf2 *l_data)
 {
 	uint8_t		*kdf_res = NULL;
 
-	if ((data->options & PWP) && !data->password && !data->raw_salt)
+	if (!data->password && !data->raw_salt)
 		l_data->password = getpass("enter des-ecb encryption password:");
 	kdf_res = PBKDF2(*l_data, HMAC256);
 	if (kdf_res)
 	{
 		memcpy(&data->key, kdf_res, 8);
 		data->key = __bswap_64(data->key);
-		if (data->options & PWP)
-			printf("salt=%016lX\nkey=%016lX\n", data->salt, data->key);
 	}
 	free(kdf_res);
-	if ((data->options & PWP) && !data->password && !data->raw_salt		// if l_data->password alloced
-		&& l_data->password)
-		free(l_data->password);
 }
 
 void	des_decode_b64_input(char **to_encrypt, size_t *len_to_enc)
@@ -325,6 +314,13 @@ void	des_setup(uint64_t **full_output, uint64_t sub_keys[16], size_t *len_to_enc
 	//	Generate key if not in args
 	if (!data->raw_key)
 		des_generate_key(data, &l_data);
+	if (data->options & PWP)
+		printf("salt=%016lX\nkey=%016lX\n", data->salt, data->key);
+	if (l_data.password && l_data.password != data->password)
+		free(l_data.password);
+	/* --- IF NO INPUT -> READ_STDIN */
+	if (data->options & READ_IN)
+		*to_encrypt = cphr_getstdin(&data->options, len_to_enc);
 	if ((data->options & B64) && data->options & DECODE)
 		des_decode_b64_input(to_encrypt, len_to_enc);
 	*full_output = calloc(*len_to_enc + (8 - (*len_to_enc % 8)), sizeof(char));
@@ -418,10 +414,10 @@ void	des_loop(char *to_encrypt, const size_t len_to_enc, uint64_t **full_output,
 bool	des_routine(t_data *data, char *runner, char *to_encrypt)
 {
 	(void)runner;
-	printf("to_encrypt == [%s]\n", to_encrypt);
 	uint64_t	*full_output = NULL;
 	uint64_t	sub_keys[16] = {0};
-	size_t		len_to_enc = data->in_len ? data->in_len : strlen(to_encrypt);
+	// size_t		len_to_enc = data->in_len ? data->in_len : strlen(to_encrypt);
+	size_t		len_to_enc = to_encrypt ? strlen(to_encrypt) : 0;
 
 	des_setup(&full_output, sub_keys, &len_to_enc, &to_encrypt, data);
 	if (data->options & PWP)

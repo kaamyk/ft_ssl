@@ -4,7 +4,10 @@ int main( int argc, char **argv )
 {
 	(void) argc;
 	srand(time(NULL));
-	t_data	data = {.salt = ((uint64_t)rand() << 32 | rand())};
+	t_data	data = {
+		.salt = ((uint64_t)rand() << 32 | rand()),
+		.options = READ_IN
+	};
 	static const t_cmd	cmds[] = {
 		{"md5", dgst_main}, 
 		{"sha256", dgst_main},

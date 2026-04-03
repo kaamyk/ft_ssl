@@ -1,47 +1,79 @@
 #include "../inc/main.h"
 
-bool	cphr_setup(t_data *data, char **argv)
+char	*cphr_getstdin(uint16_t *options, size_t *len_out)
 {
 	size_t	i = 0;
 	size_t	j = 0;
 	size_t	len = 0;
+	char	*res = 0;
+
+	if ((res = read_stdin(&len)) == NULL)
+		return (ret_err_mess_code_ptr("ft_ssl: fatal error: %s\n", errno));
+	if ((*options & B64) && (*options & DECODE))
+	{
+		len = strlen(res);	// base64 is ASCII-safe
+		while (j < len)
+		{
+			while (res[j] && is_whitespace(res[j]))
+				++j;
+			res[i] = res[j];
+			++i;
+			++j;
+		}
+		bzero(res + i, j - i);
+		len = strlen(res);	// re-measure after stripping (handles trailing whitespace)
+	}
+	if (len_out)
+		*len_out = len;
+	return (res);
+}
+
+bool	cphr_setup(t_data *data, char **argv)
+{
+	// size_t	i = 0;
+	// size_t	j = 0;
+	// size_t	len = 0;
 	
 	data->options |= ENCODE;
+	data->options |= READ_IN;
 	if (cphr_parser(data, argv))
 		return (EXIT_FAILURE);
-	if (!(data->options & ~(DECODE | ENCODE | B64 | PWP))) // if no other flags are set
-	{
-		data->options |= READ_IN;
-		if ((data->in = read_stdin(&data->in_len)) == NULL)
-			return (ret_err_mess_code("ft_ssl: fatal error: %s\n", errno));
-		//	-- Delete whitespaces
-		len = strlen(data->in);
-		if ((data->options & B64) && (data->options & DECODE))
-		{
-			while (j < len)
-			{
-				while (data->in[j] && is_whitespace(data->in[j]))
-					++j;
-				data->in[i] = data->in[j];
-				++i;
-				++j;
-			}
-			bzero(data->in + i, j - i);
-			data->in_len = strlen(data->in);
-		}
-	}
+	// if (!(data->options & ~(DECODE | ENCODE | B64 | PWR))) // if no other flags are set
+	// {
+	// 	cphr_getstdin(data);
+	// 	data->options |= READ_IN;
+	// 	if ((data->in = read_stdin(&data->in_len)) == NULL)
+	// 		return (ret_err_mess_code("ft_ssl: fatal error: %s\n", errno));
+	// 	//	-- Delete whitespaces
+	// 	len = strlen(data->in);
+	// 	if ((data->options & B64) && (data->options & DECODE))
+	// 	{
+	// 		while (j < len)
+	// 		{
+	// 			while (data->in[j] && is_whitespace(data->in[j]))
+	// 				++j;
+	// 			data->in[i] = data->in[j];
+	// 			++i;
+	// 			++j;
+	// 		}
+	// 		bzero(data->in + i, j - i);
+	// 		data->in_len = strlen(data->in);
+	// 	}
+	// }
 	return (EXIT_SUCCESS);
 }
 
 bool	cphr_exec(t_data *data, t_algo_fn f)
 {
-	if (data->options & READ_IN)
+	if (data->options & READ_IN || data->options & PWP)
 	{
-		if (data->in)
-		{
-			if (f(data, "stdin", data->in))
-				exit_err_code(data, EX_OSERR);
-		}
+		if (f(data, "stdin", NULL))
+			exit_err_code(data, EX_OSERR);
+		// if (data->in)
+		// {
+		// 	if (f(data, "stdin", data->in))
+		// 		exit_err_code(data, EX_OSERR);
+		// }
 		data->options &= ~(READ_IN);
 	}
 	if (data->in_file)
@@ -60,6 +92,8 @@ bool	cphr_main(t_data *data, char **argv)
 	static const t_algo	ciphers[] = {
 		{"base64",	B64Routine	},
 		{"des",		des_routine	},
+		{"des-ebc",	des_routine	},
+		{"des-cbc",	des_routine	},
 		{NULL,		NULL		}
 	};
 	(void)argv;
