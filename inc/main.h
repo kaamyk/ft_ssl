@@ -88,6 +88,14 @@ typedef struct	s_data
 	size_t		in_len;
 }				t_data;
 
+typedef struct	s_des_data
+{
+	uint64_t	*full_output;
+	uint64_t	sub_keys[16];
+	size_t		len_to_enc;
+	bool		ebc;
+}				t_des_data;
+
 typedef struct	s_pbkdf2
 {
 	char		*password;

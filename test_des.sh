@@ -687,6 +687,154 @@ c2=$(echo -n "$MSG" | ft_hex -e -p "password2" -s "AABBCCDD11223344")
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
 echo "════════════════════════════════════════"
+echo " DES-EBC (ECB MODE)"
+echo " Note: registered as 'des-ebc' in cipher.c"
+echo "════════════════════════════════════════"
+
+# Helper: run ft_ssl des-ebc and capture hex
+ft_ecb_hex() {
+    "$BIN" des-ebc "$@" 2>/dev/null | xxd -p | tr -d '\n'
+}
+
+# Helper: run openssl des-ecb and capture hex
+ssl_ecb_hex() {
+    openssl enc -provider legacy -provider default -des-ecb "$@" 2>/dev/null | xxd -p | tr -d '\n'
+}
+
+label="des-ebc: encrypt stdin (8-byte) vs openssl des-ecb"
+ft=$(echo -n "$MSG8" | ft_ecb_hex -e -k "$KEY")
+ssl=$(echo -n "$MSG8" | ssl_ecb_hex -K "$KEY" -nosalt -e)
+cmp_hex "$ft" "$ssl" "$label"
+
+label="des-ebc: encrypt stdin (16-byte) vs openssl des-ecb"
+ft=$(echo -n "$MSG" | ft_ecb_hex -e -k "$KEY")
+ssl=$(echo -n "$MSG" | ssl_ecb_hex -K "$KEY" -nosalt -e)
+cmp_hex "$ft" "$ssl" "$label"
+
+label="des-ebc: encrypt multi-block vs openssl des-ecb"
+ft=$(echo -n "$LONGMSG" | ft_ecb_hex -e -k "$KEY")
+ssl=$(echo -n "$LONGMSG" | ssl_ecb_hex -K "$KEY" -nosalt -e)
+cmp_hex "$ft" "$ssl" "$label"
+
+label="des-ebc: decrypt roundtrip"
+cipher=$(echo -n "$LONGMSG" | ssl_ecb_hex -K "$KEY" -nosalt -e)
+ft=$(printf "%b" "$(echo "$cipher" | sed 's/../\\x&/g')" | ft_ecb_hex -d -k "$KEY")
+exp=$(echo -n "$LONGMSG" | xxd -p | tr -d '\n')
+cmp_hex "$ft" "$exp" "$label"
+
+label="des-ebc: base64 roundtrip"
+roundtrip=$(echo -n "$LONGMSG" | "$BIN" des-ebc -e -a -k "$KEY" 2>/dev/null \
+    | "$BIN" des-ebc -d -a -k "$KEY" 2>/dev/null)
+[ "$roundtrip" = "$LONGMSG" ] && ok "$label" || { fail "$label"; echo "       got: $roundtrip"; }
+
+# ECB property: identical plaintext blocks → identical ciphertext blocks (no IV chaining)
+label="des-ebc: identical plaintext blocks → identical ciphertext blocks"
+IDENT_ECB=$(head -c 16 /dev/zero | tr '\0' 'A')  # two identical 8-byte blocks
+cipher=$(printf '%s' "$IDENT_ECB" | ft_ecb_hex -e -k "$KEY")
+c1="${cipher:0:16}"
+c2="${cipher:16:16}"
+if [ "$c1" = "$c2" ]; then
+    ok "$label"
+else
+    fail "$label"
+    echo "       block1: $c1  block2: $c2  (should be equal in ECB)"
+fi
+
+# ECB property: no IV — passing -v must not change output
+label="des-ebc: -v flag has no effect (ECB ignores IV)"
+c1=$(echo -n "$MSG" | ft_ecb_hex -e -k "$KEY")
+c2=$(echo -n "$MSG" | ft_ecb_hex -e -k "$KEY" -v "AABBCCDDEEFF0011")
+if [ "$c1" = "$c2" ]; then
+    ok "$label"
+else
+    fail "$label"
+    echo "       without -v: $c1"
+    echo "       with    -v: $c2  (should be equal)"
+fi
+
+# ECB differs from CBC on same key+plaintext
+label="des-ebc output differs from des-cbc output (same key+IV)"
+ft_ecb=$(echo -n "$MSG" | ft_ecb_hex -e -k "$KEY")
+ft_cbc=$(echo -n "$MSG" | ft_hex -e -k "$KEY" -v "$IV")
+[ "$ft_ecb" != "$ft_cbc" ] && ok "$label" || {
+    fail "$label"
+    echo "       ECB and CBC produced the same output — likely IV not applied in CBC"
+}
+
+# Block boundary sizes vs openssl des-ecb
+for n in $(seq 1 24); do
+    msg=$(head -c "$n" /dev/zero | tr '\0' 'E')
+    ft=$(printf '%s' "$msg" | ft_ecb_hex -e -k "$KEY")
+    ssl=$(printf '%s' "$msg" | ssl_ecb_hex -K "$KEY" -nosalt -e)
+    cmp_hex "$ft" "$ssl" "des-ebc: encrypt ${n}-byte input vs openssl"
+done
+
+# ─────────────────────────────────────────────────────────────────────────────
+echo ""
+echo "════════════════════════════════════════"
+echo " DES-CBC (explicit des-cbc command)"
+echo "════════════════════════════════════════"
+
+# Helper: run ft_ssl des-cbc and capture hex
+ft_cbc_hex() {
+    "$BIN" des-cbc "$@" 2>/dev/null | xxd -p | tr -d '\n'
+}
+
+label="des-cbc: encrypt matches openssl des-cbc"
+ft=$(echo -n "$MSG" | ft_cbc_hex -e -k "$KEY" -v "$IV")
+ssl=$(echo -n "$MSG" | ssl_hex -K "$KEY" -iv "$IV" -nosalt -e)
+cmp_hex "$ft" "$ssl" "$label"
+
+label="des-cbc: encrypt multi-block matches openssl des-cbc"
+ft=$(echo -n "$LONGMSG" | ft_cbc_hex -e -k "$KEY" -v "$IV")
+ssl=$(echo -n "$LONGMSG" | ssl_hex -K "$KEY" -iv "$IV" -nosalt -e)
+cmp_hex "$ft" "$ssl" "$label"
+
+label="des-cbc: output identical to 'des' (same key+IV)"
+ft_plain=$(echo -n "$LONGMSG" | ft_hex -e -k "$KEY" -v "$IV")
+ft_cbc=$(echo -n "$LONGMSG" | ft_cbc_hex -e -k "$KEY" -v "$IV")
+cmp_hex "$ft_cbc" "$ft_plain" "$label"
+
+label="des-cbc: decrypt roundtrip"
+cipher=$(echo -n "$LONGMSG" | ssl_hex -K "$KEY" -iv "$IV" -nosalt -e)
+ft=$(printf "%b" "$(echo "$cipher" | sed 's/../\\x&/g')" | ft_cbc_hex -d -k "$KEY" -v "$IV")
+exp=$(echo -n "$LONGMSG" | xxd -p | tr -d '\n')
+cmp_hex "$ft" "$exp" "$label"
+
+label="des-cbc: base64 roundtrip"
+roundtrip=$(echo -n "$LONGMSG" | "$BIN" des-cbc -e -a -k "$KEY" -v "$IV" 2>/dev/null \
+    | "$BIN" des-cbc -d -a -k "$KEY" -v "$IV" 2>/dev/null)
+[ "$roundtrip" = "$LONGMSG" ] && ok "$label" || { fail "$label"; echo "       got: $roundtrip"; }
+
+label="des-cbc: FIPS-81 vector"
+ft=$(echo -n "$FIPS_MSG" | ft_cbc_hex -e -k "$FIPS_KEY" -v "$FIPS_IV")
+ssl=$(echo -n "$FIPS_MSG" | ssl_hex -K "$FIPS_KEY" -iv "$FIPS_IV" -nosalt -e)
+cmp_hex "$ft" "$ssl" "$label"
+
+# CBC property: identical plaintext blocks → different ciphertext blocks
+label="des-cbc: identical plaintext blocks → different ciphertext blocks"
+IDENT_CBC=$(head -c 16 /dev/zero | tr '\0' 'A')
+cipher=$(printf '%s' "$IDENT_CBC" | ft_cbc_hex -e -k "$KEY" -v "$IV")
+c1="${cipher:0:16}"
+c2="${cipher:16:16}"
+if [ "$c1" != "$c2" ]; then
+    ok "$label"
+else
+    fail "$label"
+    echo "       both blocks: $c1  (should differ in CBC)"
+fi
+
+# Block boundary sizes for des-cbc vs openssl
+for n in $(seq 1 24); do
+    msg=$(head -c "$n" /dev/zero | tr '\0' 'C')
+    ft=$(printf '%s' "$msg" | ft_cbc_hex -e -k "$KEY" -v "$IV")
+    ssl=$(printf '%s' "$msg" | ssl_hex -K "$KEY" -iv "$IV" -nosalt -e)
+    cmp_hex "$ft" "$ssl" "des-cbc: encrypt ${n}-byte input vs openssl"
+done
+
+# ─────────────────────────────────────────────────────────────────────────────
+echo ""
+echo "════════════════════════════════════════"
 printf " Results: ${GRN}%d passed${RST}  ${RED}%d failed${RST}\n" "$PASS" "$FAIL"
 echo "════════════════════════════════════════"
 echo ""

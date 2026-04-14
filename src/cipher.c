@@ -30,36 +30,10 @@ char	*cphr_getstdin(uint16_t *options, size_t *len_out)
 
 bool	cphr_setup(t_data *data, char **argv)
 {
-	// size_t	i = 0;
-	// size_t	j = 0;
-	// size_t	len = 0;
-	
 	data->options |= ENCODE;
 	data->options |= READ_IN;
 	if (cphr_parser(data, argv))
 		return (EXIT_FAILURE);
-	// if (!(data->options & ~(DECODE | ENCODE | B64 | PWR))) // if no other flags are set
-	// {
-	// 	cphr_getstdin(data);
-	// 	data->options |= READ_IN;
-	// 	if ((data->in = read_stdin(&data->in_len)) == NULL)
-	// 		return (ret_err_mess_code("ft_ssl: fatal error: %s\n", errno));
-	// 	//	-- Delete whitespaces
-	// 	len = strlen(data->in);
-	// 	if ((data->options & B64) && (data->options & DECODE))
-	// 	{
-	// 		while (j < len)
-	// 		{
-	// 			while (data->in[j] && is_whitespace(data->in[j]))
-	// 				++j;
-	// 			data->in[i] = data->in[j];
-	// 			++i;
-	// 			++j;
-	// 		}
-	// 		bzero(data->in + i, j - i);
-	// 		data->in_len = strlen(data->in);
-	// 	}
-	// }
 	return (EXIT_SUCCESS);
 }
 
@@ -69,11 +43,6 @@ bool	cphr_exec(t_data *data, t_algo_fn f)
 	{
 		if (f(data, "stdin", NULL))
 			exit_err_code(data, EX_OSERR);
-		// if (data->in)
-		// {
-		// 	if (f(data, "stdin", data->in))
-		// 		exit_err_code(data, EX_OSERR);
-		// }
 		data->options &= ~(READ_IN);
 	}
 	if (data->in_file)

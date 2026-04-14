@@ -13,6 +13,8 @@ int main( int argc, char **argv )
 		{"sha256", dgst_main},
 		{"base64", cphr_main},
 		{"des", cphr_main},
+		{"des-cbc", cphr_main},
+		{"des-ebc", cphr_main},
 		{NULL, NULL}
 	};
 	

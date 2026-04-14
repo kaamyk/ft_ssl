@@ -132,8 +132,6 @@ char	**cphr_parse_opt(t_data *data, char **runner)
 				break;
 			case 'k':
 				data->raw_key = *(++runner);
-				for (uint8_t i = 0; data->raw_key[i]; i++)
-					data->raw_key[i] = toupper(data->raw_key[i]);
 				break ;
 			case 'p':
 				data->password = *(++runner);
@@ -169,7 +167,10 @@ void	cphr_parse_opt_args(t_data *data)
 	}
 	if (data->raw_key)
 	{
-		if (strlen(data->raw_key) != 16 || cphr_parse_hexa_input(data->raw_key))
+		data->raw_key = strdup(data->raw_key);	// stack ptr -> heap ptr for des formating (des.c)
+		for (uint8_t i = 0; data->raw_key[i]; i++)
+			data->raw_key[i] = toupper(data->raw_key[i]);
+		if (cphr_parse_hexa_input(data->raw_key))
 			exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", data->raw_key, data->algo, data, EX_USAGE);
 		data->key = atohex(data->raw_key);
 	}
