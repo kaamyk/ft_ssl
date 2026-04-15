@@ -160,8 +160,9 @@ bool	cphr_display(char *cipher, size_t cipher_l)
 			ret_err_mess_code("ft_ssl: fatal error:", errno);
 		runner += 64;
 	}
-	if (write(STDOUT_FILENO, runner, last - runner) < 0
-		|| write(STDOUT_FILENO, "\n", 1) < 0)
+	if (last - runner > 0 &&
+		(  write(STDOUT_FILENO, runner, last - runner) < 0
+		|| write(STDOUT_FILENO, "\n", 1) < 0))
 		ret_err_mess_code("ft_ssl: fatal error:", errno);
 	return (EXIT_SUCCESS);
 }

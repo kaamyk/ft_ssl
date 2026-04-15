@@ -84,6 +84,7 @@ typedef struct	s_data
 	uint64_t	init_vector;
 	char		**inputs;
 	char		*in_file;
+	size_t		len_file;
 	char		*out_file;
 	size_t		in_len;
 }				t_data;
@@ -157,7 +158,7 @@ bool		is_whitespace(const char c);
 bool		is_hexa(const char c);
 void	decode(uint32_t *output, uint8_t *input, uint32_t len);
 void	encode(uint8_t *output, uint32_t *input, uint32_t len);
-char	*file_to_str(const char *filename);
+char	*file_to_str(const char *filename, size_t *out_len);
 uint64_t	atohex(char *str);
 
 //	stdin.c
@@ -169,7 +170,7 @@ void	print_ssl_usage(t_data *data);
 void	print_dgst_usage(t_data *data);
 void	print_cphr_usage(t_data *data);
 bool	dgst_display(const uint8_t digest[16], uint16_t options, const char *filename, const char *to_hash, const char *algoname, const uint8_t hssz);
-bool	cphr_display(char *cipher, size_t cipher_l);
+bool	cphr_display(:qchar *cipher, size_t cipher_l);
 
 // ft_strjoin.c
 char	*ft_strjoin(char const *s1, char const *s2);

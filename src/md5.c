@@ -238,7 +238,7 @@ bool	MDMain(t_data *data)
 		}
 		else 
 		{
-			to_hash = file_to_str(*runner);
+			to_hash = file_to_str(*runner, &data->len_file);
 			if (to_hash == NULL)
 				exit(EX_OSERR);
 		}

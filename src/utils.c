@@ -27,20 +27,22 @@ void	encode(uint8_t *output, uint32_t *input, uint32_t len)
 	}
 }
 
-char	*file_to_str(const char *filename)
+char	*file_to_str(const char *filename, size_t *len_out)
 {
 	char	*content = NULL;
 	char	*buf[256] = {0};
 	char	*tmp = NULL;
 	FILE	*file = fopen(filename, "r");
+	size_t	len_read = 0;
 	
 	if (file == NULL)
 	{
 		fprintf(stderr, "ft_ssl: fopen: %s: %s\n", filename, strerror(errno));
 		return (NULL);
 	}
-	while (fread((char *)buf, 1, 255, file) > 0)
+	while ((len_read = fread((char *)buf, 1, 255, file)) > 0)
 	{
+		*len_out += len_read;
 		tmp = content;
 		if (content != NULL)
 			content = ft_strjoin(content, (char *)buf);

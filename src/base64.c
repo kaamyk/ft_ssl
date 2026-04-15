@@ -91,14 +91,42 @@ bool 	B64Routine(t_data *data, char *runner, char *to_hash)
 {
 	(void)runner;
 	char	*res = NULL;
+	size_t	in_len = data->len_file;
+	size_t	out_len = 0;
 
+	data->options |= B64;
+	/* --- IF NO INPUT -> READ_STDIN */
+	if (data->options & READ_IN)
+		to_hash = cphr_getstdin(&data->options, &in_len);
 	if (data->options & DECODE)
-		res = base64_decode(to_hash, strlen(to_hash));
+	{
+		res = base64_decode(to_hash, in_len);
+		out_len = (in_len / 4) * 3;
+		if (in_len > 0 && to_hash[in_len - 1] == '=') out_len--;
+		if (in_len > 1 && to_hash[in_len - 2] == '=') out_len--;
+		free(to_hash);
+		if (write(STDOUT_FILENO, res, out_len) < 0)
+			return (EXIT_FAILURE);
+		free(res);
+		return (EXIT_SUCCESS);
+	}
 	else if (data->options & ENCODE)
-		res = base64_encode(to_hash, strlen(to_hash));
+	{
+		res = base64_encode(to_hash, in_len);
+		out_len = strlen(res);
+	}
 	else
 		res = strdup(to_hash);
-	if (cphr_display(res, strlen(res)))
+	free(to_hash);
+	/* --- OUTPUT --- */
+	int out_fd = STDOUT_FILENO;
+	if (data->out_file)
+	{
+		out_fd = open(data->out_file, O_WRONLY | O_CREAT | O_TRUNC);
+		if (out_fd < 0)
+			exit_err_code(data, EX_OSERR);
+	}
+	else (cphr_display(res, out_len))
 		return (EXIT_FAILURE);
 	free(res);
 	return (EXIT_SUCCESS);

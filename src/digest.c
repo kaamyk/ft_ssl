@@ -38,7 +38,7 @@ bool	dgst_exec(t_data *data, t_algo_fn f)
 				exit_err_mess_code("ft_ssl: fatal error:", errno, data, EX_OSERR);
 		}
 		else 
-			to_hash = file_to_str(*runner);
+			to_hash = file_to_str(*runner, &data->len_file);
 		if (to_hash)
 		{
 			if (f(data, *runner, to_hash))

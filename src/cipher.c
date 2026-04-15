@@ -11,7 +11,7 @@ char	*cphr_getstdin(uint16_t *options, size_t *len_out)
 		return (ret_err_mess_code_ptr("ft_ssl: fatal error: %s\n", errno));
 	if ((*options & B64) && (*options & DECODE))
 	{
-		len = strlen(res);	// base64 is ASCII-safe
+		len = strlen(res);
 		while (j < len)
 		{
 			while (res[j] && is_whitespace(res[j]))
@@ -47,13 +47,18 @@ bool	cphr_exec(t_data *data, t_algo_fn f)
 	}
 	if (data->in_file)
 	{
-		data->in = file_to_str(data->in_file);
+		data->in = file_to_str(data->in_file, &data->len_file);
 		if (!data->in)
 			exit_err_mess_code("ft_ssl: fatal error:", errno, data, EX_OSERR);
 		if (f(data, data->in_file, data->in))
 			exit_err_code(data, EX_OSERR);
 	}
 	return (EXIT_SUCCESS);
+}
+
+bool	cphr_output(t_data *data, uint8_t *output, size_t out_len, uint8_t *to_encrypt, size_t to_enc_len)
+{
+	
 }
 
 bool	cphr_main(t_data *data, char **argv)
