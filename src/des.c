@@ -278,11 +278,17 @@ void	des_generate_key(t_data *data, t_pbkdf2 *l_data)
 
 	if (!data->password && !data->raw_salt)
 		l_data->password = getpass("enter des-ecb encryption password:");
+	l_data->dk_len = 16;
 	kdf_res = PBKDF2(*l_data, HMAC256);
 	if (kdf_res)
 	{
 		memcpy(&data->key, kdf_res, 8);
 		data->key = __bswap_64(data->key);
+		if (!data->raw_init_vector)
+		{
+			memcpy(&data->init_vector, kdf_res + 8, 8);
+			data->init_vector = __bswap_64(data->init_vector);
+		}
 	}
 	free(kdf_res);
 }
@@ -305,21 +311,16 @@ void	des_decode_b64_input(char **to_encrypt, size_t *len_to_enc)
 	*len_to_enc = (b64_len / 4) * 3 - pad_count;
 }
 
-void	des_setup(char **to_encrypt, t_des_data *des_data, t_data *data)
+bool	des_setup_key(t_pbkdf2 *l_data, t_data *data)
 {
-	t_pbkdf2	l_data = {
-		.password = data->password, .salt = data->salt,
-		.salt_l = data->salt_len, .dk_len = 8, .c = 10000
-	};
-
-	//	Generate key if not in args
 	if (data->raw_key)
 	{
 		size_t	len = strlen(data->raw_key);
 		if (len < 16)
 		{
 			char	*padded = calloc(17, 1);
-			write(STDERR_FILENO, "hex string is too short, padding with zero bytes to length\n", 60);
+			if (write(STDERR_FILENO, "hex string is too short, padding with zero bytes to length\n", 60) < 0)
+				return (ret_err_mess_code("ft_ssl: write", errno));
 			memcpy(padded, data->raw_key, len);
 			memset(padded + len, '0', 16 - len);
 			free(data->raw_key);
@@ -329,7 +330,45 @@ void	des_setup(char **to_encrypt, t_des_data *des_data, t_data *data)
 		// if len > 16 : conversion to uint64_t troncates the string
 	}
 	else
-		des_generate_key(data, &l_data);
+		des_generate_key(data, l_data);
+	return (EXIT_SUCCESS);
+}
+
+bool	des_setup_file_in(char **to_encrypt, size_t *len_to_enc, t_pbkdf2 *l_data, t_data *data)
+{
+	uint64_t	tmp = 0;
+	char		*buf = *to_encrypt;
+	char		*cipher = NULL;
+	
+	if (!buf || data->len_file < 16)
+		return (ret_err_mess("ft_ssl: to_encrypt invalid."));
+	if (memcmp(SALTBYTES, data->in, 8))
+		return (ret_err_mess("ft_ssl: des: wrong magic bytes in input file."));
+	memcpy(&tmp, buf + 8, 8);
+	l_data->salt = __bswap_64(tmp);
+	l_data->salt_l = sizeof(uint64_t);
+	*len_to_enc = data->len_file - 16;
+	cipher = calloc(*len_to_enc, 1);
+	if (!cipher)
+		return (ret_err_mess_code("ft_ssl: calloc", errno));
+	memcpy(cipher, buf + 16, *len_to_enc);
+	free(buf);
+	*to_encrypt = cipher;
+	return (EXIT_SUCCESS);
+}
+
+void	des_setup(char **to_encrypt, t_des_data *des_data, t_data *data)
+{
+	t_pbkdf2	l_data = {
+		.password = data->password, .salt = data->salt,
+		.salt_l = data->salt_len, .dk_len = 16, .c = 10000
+	};
+
+	if ((data->options & IN_FILE) && data->in_file
+	 && des_setup_file_in(to_encrypt, &des_data->len_to_enc, &l_data, data))
+		return ;
+	if (des_setup_key(&l_data, data))
+		return ;
 	if (data->options & PWP)
 		printf("salt=%016lX\nkey=%016lX\n", data->salt, data->key);
 	if (l_data.password && l_data.password != data->password)
@@ -349,11 +388,8 @@ void	des_setup(char **to_encrypt, t_des_data *des_data, t_data *data)
 		data->init_vector = des_setup_iv(data->raw_init_vector);
 }
 
-void	des_output(t_data *data, uint64_t *full_output, char *to_encrypt, size_t len_to_enc)
+void	des_output(t_data *data, char *out_buf, char *to_encrypt, size_t out_len)
 {
-	char	*buf = NULL;
-	size_t	buf_l = 0;
-
 	/* --- OUTPUT --- */
 	int out_fd = STDOUT_FILENO;
 	if (data->out_file)
@@ -364,28 +400,29 @@ void	des_output(t_data *data, uint64_t *full_output, char *to_encrypt, size_t le
 	}
 	if ((data->options & B64) && (data->options & ENCODE))
 	{
-		buf = base64_encode((char *)full_output, len_to_enc);
-		buf_l = strlen(buf);
-		char *runner = buf;
-		char *last_b64 = buf + buf_l;
+		char	*runner = out_buf;
+		char	*last_b64 = out_buf + out_len;
+		
 		while (last_b64 - runner >= 64)
 		{
-			write(out_fd, runner, 64);
-			write(out_fd, "\n", 1);
+			if (write(out_fd, runner, 64) < 0
+			 || write(out_fd, "\n", 1) < 0)
+				fprintf(stderr, "%s: %s(%d)\n", "ft_ssl: des_output", strerror(errno), errno);
 			runner += 64;
 		}
 		if (runner < last_b64)
 		{
-			write(out_fd, runner, last_b64 - runner);
-			write(out_fd, "\n", 1);
+			if (write(out_fd, runner, last_b64 - runner) < 0
+			 || write(out_fd, "\n", 1) < 0)
+				fprintf(stderr, "%s: %s(%d)\n", "ft_ssl: des_output", strerror(errno), errno);
 		}
-		free(full_output);
-		free(buf);
+		free(out_buf);
 	}
 	else
 	{
-		write(out_fd, full_output, len_to_enc);
-		free(full_output);
+		if (write(out_fd, out_buf, out_len) < 0)
+			fprintf(stderr, "%s: %s(%d)\n", "ft_ssl: des_output", strerror(errno), errno);
+		free(out_buf);
 	}
 	if (out_fd != STDOUT_FILENO)
 		close(out_fd);
@@ -416,7 +453,7 @@ void	des_loop(char *to_encrypt, t_des_data *des_data, t_data *data)
 		chunck_input = des_inverse_initial_permutation(chunck_input);
 		if (!des_data->ebc && (data->options & DECODE) && data->init_vector)
 			chunck_input ^= data->init_vector;
-		if (data->raw_init_vector)
+		if (!des_data->ebc)
 		{
 			if (data->options & ENCODE)
 				data->init_vector = chunck_input;	/* big-endian ciphertext, before bswap */
@@ -456,7 +493,18 @@ bool	des_routine(t_data *data, char *runner, char *to_encrypt)
 		if (pad > 0 && pad <= 8)
 			des_data.len_to_enc -= pad;
 	}
-	des_output(data, des_data.full_output, to_encrypt, des_data.len_to_enc);
+	char	*out_buf = (char *)des_data.full_output;
+	size_t	out_len = des_data.len_to_enc;
+	/* --- BASE 64 ENCRYPTION */
+	if ((data->options & B64) && (data->options & ENCODE))
+	{
+		char	*b64 = base64_encode(out_buf, out_len);
+		free(out_buf);
+		out_buf = b64;
+		out_len = b64 ? strlen(b64) : 0;
+	}
+	if (out_buf)
+		des_output(data, out_buf, to_encrypt, out_len);
 	if (data->raw_key)
 		free(data->raw_key);
 	return (EXIT_SUCCESS);

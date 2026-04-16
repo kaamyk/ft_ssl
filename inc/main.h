@@ -63,6 +63,8 @@ enum
 #define BASE64STR	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 #define HEXABASE	"0123456789ABCDEF"
 
+#define SALTBYTES	"Salted__"
+
 #define SHA256_HSSZ 32
 #define SHA256_BLSZ	64
 #define MD5_HSSZ 	16
@@ -75,7 +77,7 @@ typedef struct	s_data
 	char		*in;
 	char		*string;
 	char		*raw_key;
-	uint64_t	key;
+ 	uint64_t	key;
 	char		*password;
 	uint64_t	salt;
 	char		*raw_salt;
@@ -170,7 +172,7 @@ void	print_ssl_usage(t_data *data);
 void	print_dgst_usage(t_data *data);
 void	print_cphr_usage(t_data *data);
 bool	dgst_display(const uint8_t digest[16], uint16_t options, const char *filename, const char *to_hash, const char *algoname, const uint8_t hssz);
-bool	cphr_display(:qchar *cipher, size_t cipher_l);
+bool	cphr_display(char *cipher, size_t cipher_l);
 
 // ft_strjoin.c
 char	*ft_strjoin(char const *s1, char const *s2);
@@ -200,7 +202,7 @@ bool	MDRoutine(t_data *data, char *runner, char *to_hash);
 //	base64.c
 char	*base64_encode(const char *input, const size_t input_l);
 char	*base64_decode(const char *input, const size_t input_l);
-bool 	B64Routine(t_data *data, char *runner, char *to_hash);
+bool 	b64_routine(t_data *data, char *runner, char *to_hash);
 
 //	hmac.c
 uint8_t	*HMAC256(char *key, uint8_t *message, size_t message_l);

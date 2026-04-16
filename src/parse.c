@@ -111,7 +111,7 @@ char	**cphr_parse_opt(t_data *data, char **runner)
 				if (*(runner + 1) && **(runner + 1) != '-')
 				{
 					data->out_file = *(++runner);
-					data->options &= ~(OUT_FILE);
+					// data->options &= ~(OUT_FILE);
 				}
 				else
 					exit_err_mess_opt2("ft_ssl: '%s': invalid argument. Run './ft_ssl %s -h for usage.", *runner, data->algo, data, EX_USAGE);

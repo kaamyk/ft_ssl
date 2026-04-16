@@ -36,10 +36,7 @@ char	*file_to_str(const char *filename, size_t *len_out)
 	size_t	len_read = 0;
 	
 	if (file == NULL)
-	{
-		fprintf(stderr, "ft_ssl: fopen: %s: %s\n", filename, strerror(errno));
-		return (NULL);
-	}
+		return (ret_err_mess_code_ptr("ft_ssl: fopen", errno));
 	while ((len_read = fread((char *)buf, 1, 255, file)) > 0)
 	{
 		*len_out += len_read;

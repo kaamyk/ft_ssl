@@ -3,9 +3,17 @@
 int main( int argc, char **argv )
 {
 	(void) argc;
-	srand(time(NULL));
+	uint64_t	random_salt = 0;
+	int			urandom_fd = open("/dev/urandom", O_RDONLY);
+	if (urandom_fd >= 0)
+	{
+		if (read(urandom_fd, &random_salt, sizeof(random_salt)) < 0)
+			random_salt = 0;
+		close(urandom_fd);
+	}
 	t_data	data = {
-		.salt = ((uint64_t)rand() << 32 | rand()),
+		.salt = random_salt,
+		.salt_len = sizeof(uint64_t),
 		.options = READ_IN
 	};
 	static const t_cmd	cmds[] = {
@@ -14,7 +22,7 @@ int main( int argc, char **argv )
 		{"base64", cphr_main},
 		{"des", cphr_main},
 		{"des-cbc", cphr_main},
-		{"des-ebc", cphr_main},
+		{"des-ecb", cphr_main},
 		{NULL, NULL}
 	};
 	

@@ -41,12 +41,16 @@ char		*base64_encode(const char *input, const size_t input_l)
 	char		*res = NULL;
 
 	if(!input_l)
+	{
 		res = calloc(1, 1);
+		if (!res)
+			return (ret_err_mess_code_ptr("ft_ssl: base64_encode", errno));
+	}
 	else
 	{
 		res = calloc(alloc_l + 1, 1);
 		if (!res)
-			return (NULL);
+			return (ret_err_mess_code_ptr("ft_ssl: base64_encode", errno));
 		for (uint32_t k = 0, i = 0; k < alloc_l; k += 4, i += 3)
 		{
 			tmp = 0;
@@ -87,7 +91,52 @@ char	*base64_decode(const char *input, const size_t input_l)
 	return (res);
 }
 
-bool 	B64Routine(t_data *data, char *runner, char *to_hash)
+void	b64_output(t_data *data, char *output, size_t out_len)
+{
+	int	out_fd = STDOUT_FILENO;
+	
+	if ((data->options & OUT_FILE) && data->out_file)
+	{
+		out_fd = open(data->out_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		if (out_fd < 0)
+			return ((void)ret_err_mess_code("ft_ssl: B64Output", errno));
+	}
+	if (data->options & ENCODE)
+	{
+		char	*runner = output;
+		char	*last = output + out_len;
+		
+		while (last - runner >= 64)
+		{
+			if (write(out_fd, runner, 64) < 0
+			 || write(out_fd, "\n", 1) < 0)
+			{
+				close(out_fd);
+				return ((void)ret_err_mess_code("ft_ssl: write :", errno));
+			}
+			runner += 64;
+		}
+		if (runner < last)
+		{
+			if (write(out_fd, runner, last - runner) < 0
+			 || write(out_fd, "\n", 1) < 0)
+			{
+				close(out_fd);
+				return ((void)ret_err_mess_code("ft_ssl: write :", errno));
+			}
+		}
+	}
+	else
+	{
+		if (write(out_fd, output, out_len) < 0)
+		{
+			close(out_fd);
+			return ((void)ret_err_mess_code("ft_ssl: write :", errno));
+		}
+	}
+}
+
+bool 	b64_routine(t_data *data, char *runner, char *to_hash)
 {
 	(void)runner;
 	char	*res = NULL;
@@ -104,11 +153,6 @@ bool 	B64Routine(t_data *data, char *runner, char *to_hash)
 		out_len = (in_len / 4) * 3;
 		if (in_len > 0 && to_hash[in_len - 1] == '=') out_len--;
 		if (in_len > 1 && to_hash[in_len - 2] == '=') out_len--;
-		free(to_hash);
-		if (write(STDOUT_FILENO, res, out_len) < 0)
-			return (EXIT_FAILURE);
-		free(res);
-		return (EXIT_SUCCESS);
 	}
 	else if (data->options & ENCODE)
 	{
@@ -119,15 +163,7 @@ bool 	B64Routine(t_data *data, char *runner, char *to_hash)
 		res = strdup(to_hash);
 	free(to_hash);
 	/* --- OUTPUT --- */
-	int out_fd = STDOUT_FILENO;
-	if (data->out_file)
-	{
-		out_fd = open(data->out_file, O_WRONLY | O_CREAT | O_TRUNC);
-		if (out_fd < 0)
-			exit_err_code(data, EX_OSERR);
-	}
-	else (cphr_display(res, out_len))
-		return (EXIT_FAILURE);
+	b64_output(data, res, out_len);
 	free(res);
 	return (EXIT_SUCCESS);
 }
