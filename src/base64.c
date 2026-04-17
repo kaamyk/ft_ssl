@@ -1,6 +1,5 @@
 #include "../inc/main.h"
 
-// inline char get_base_char(uint8_t to_convert) { return (BASE64STR[to_convert & 0x3F]); }
 char get_base_char(uint8_t to_convert) { return (BASE64STR[to_convert & 0x3F]); }
 
 // inline bool need_pad(const uint32_t input_l) { return (input_l % 3 > 0); }
@@ -14,24 +13,6 @@ uint8_t		get_base_index(uint8_t to_find)
 			return (i);
 	}
 	return (0);
-}
-
-size_t		ft_strlcpy(char *dest, const char *src, size_t size)
-{
-	unsigned int	i;
-	unsigned int	srclen;
-
-	i = 0;
-	srclen = strlen(src);
-	if (!size)
-		return (srclen);
-	while (src[i] != '\0' && i < (size - 1))
-	{
-		dest[i] = src[i];
-		i++;
-	}
-	dest[i] = '\0';
-	return (srclen);
 }
 
 char		*base64_encode(const char *input, const size_t input_l)
@@ -91,6 +72,17 @@ char	*base64_decode(const char *input, const size_t input_l)
 	return (res);
 }
 
+bool	b64_write(const int out_fd, const char *buf, const size_t n_bytes, bool nl)
+{
+	if (write(out_fd, buf, n_bytes) < 0
+	 || (nl && write(out_fd, "\n", 1) < 0))
+	{
+		close(out_fd);
+		return (ret_err_mess_code("ft_ssl: write :", errno));
+	}
+	return (EXIT_SUCCESS);
+}
+
 bool	b64_output(t_data *data, char *output, size_t out_len)
 {
 	int	out_fd = STDOUT_FILENO;
@@ -108,30 +100,28 @@ bool	b64_output(t_data *data, char *output, size_t out_len)
 
 		while (last - runner >= 64)
 		{
-			if (write(out_fd, runner, 64) < 0
-			 || write(out_fd, "\n", 1) < 0)
+			if (b64_write(out_fd, runner, 64, true))
 			{
 				close(out_fd);
-				return (ret_err_mess_code("ft_ssl: write :", errno));
+				return (EXIT_FAILURE);
 			}
 			runner += 64;
 		}
 		if (runner < last)
 		{
-			if (write(out_fd, runner, last - runner) < 0
-			 || write(out_fd, "\n", 1) < 0)
+			if (b64_write(out_fd, runner, last - runner, true))
 			{
 				close(out_fd);
-				return (ret_err_mess_code("ft_ssl: write :", errno));
+				return (EXIT_FAILURE);
 			}
 		}
 	}
 	else
 	{
-		if (write(out_fd, output, out_len) < 0)
+		if (b64_write(out_fd, output, out_len, false))
 		{
 			close(out_fd);
-			return (ret_err_mess_code("ft_ssl: write :", errno));
+			return (EXIT_FAILURE);
 		}
 	}
 	if (out_fd != STDOUT_FILENO)
@@ -162,8 +152,6 @@ bool 	b64_routine(t_data *data, char *runner, char *to_hash)
 		res = base64_encode(to_hash, in_len);
 		out_len = strlen(res);
 	}
-	else
-		res = strdup(to_hash);
 	free(to_hash);
 	/* --- OUTPUT --- */
 	bool ret = b64_output(data, res, out_len);

@@ -222,11 +222,6 @@ assert_files_eq "decode with -i and -o flags" "$TMPDIR/b64_file_dec" "$TMPDIR/b6
 ########################################################################
 section "DES-ECB - Basic encryption"
 
-# Subject test: echo "foo bar" with key 6162636461626364, -a -nopad equivalent
-# We test with openssl -nopad to verify raw block alignment
-got=$(echo -n "foo bar" | $OPENSSL des-ecb -K 6162636461626364 -a -nopad $OPENSSL_DES_FLAGS 2>/dev/null)
-assert_eq "openssl subject test (nopad)" "$got" "YZF3QKaabXU=" "echo -n 'foo bar' | openssl des-ecb -K 6162636461626364 -a -nopad ..."
-
 # Encrypt with ft_ssl, decrypt with openssl (PKCS padding)
 echo -n "foo bar" | $FT_SSL des-ecb -k 6162636461626364 -a > "$TMPDIR/ecb_enc"
 got=$($OPENSSL des-ecb -d -K 6162636461626364 -a $OPENSSL_DES_FLAGS < "$TMPDIR/ecb_enc" 2>/dev/null)
