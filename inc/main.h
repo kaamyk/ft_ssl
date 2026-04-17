@@ -96,7 +96,7 @@ typedef struct	s_des_data
 	uint64_t	*full_output;
 	uint64_t	sub_keys[16];
 	size_t		len_to_enc;
-	bool		ebc;
+	bool		ecb;
 }				t_des_data;
 
 typedef struct	s_pbkdf2
@@ -222,6 +222,7 @@ void	routine(t_data *data);
 bool	dgst_main(t_data *data, char **argv);
 
 //	cipher.c
+bool	cphr_write(const int out_fd, const char *buf, const size_t n_bytes, bool nl);
 char	*cphr_getstdin(uint16_t *options, size_t *len_out);
 bool	cphr_main(t_data *data, char **argv);
 

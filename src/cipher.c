@@ -1,5 +1,16 @@
 #include "../inc/main.h"
 
+bool	cphr_write(const int out_fd, const char *buf, const size_t n_bytes, bool nl)
+{
+	if (write(out_fd, buf, n_bytes) < 0
+	 || (nl && write(out_fd, "\n", 1) < 0))
+	{
+		close(out_fd);
+		return (ret_err_mess_code("ft_ssl: write :", errno));
+	}
+	return (EXIT_SUCCESS);
+}
+
 char	*cphr_getstdin(uint16_t *options, size_t *len_out)
 {
 	size_t	i = 0;

@@ -72,17 +72,6 @@ char	*base64_decode(const char *input, const size_t input_l)
 	return (res);
 }
 
-bool	b64_write(const int out_fd, const char *buf, const size_t n_bytes, bool nl)
-{
-	if (write(out_fd, buf, n_bytes) < 0
-	 || (nl && write(out_fd, "\n", 1) < 0))
-	{
-		close(out_fd);
-		return (ret_err_mess_code("ft_ssl: write :", errno));
-	}
-	return (EXIT_SUCCESS);
-}
-
 bool	b64_output(t_data *data, char *output, size_t out_len)
 {
 	int	out_fd = STDOUT_FILENO;
@@ -100,7 +89,7 @@ bool	b64_output(t_data *data, char *output, size_t out_len)
 
 		while (last - runner >= 64)
 		{
-			if (b64_write(out_fd, runner, 64, true))
+			if (cphr_write(out_fd, runner, 64, true))
 			{
 				close(out_fd);
 				return (EXIT_FAILURE);
@@ -109,7 +98,7 @@ bool	b64_output(t_data *data, char *output, size_t out_len)
 		}
 		if (runner < last)
 		{
-			if (b64_write(out_fd, runner, last - runner, true))
+			if (cphr_write(out_fd, runner, last - runner, true))
 			{
 				close(out_fd);
 				return (EXIT_FAILURE);
@@ -118,7 +107,7 @@ bool	b64_output(t_data *data, char *output, size_t out_len)
 	}
 	else
 	{
-		if (b64_write(out_fd, output, out_len, false))
+		if (cphr_write(out_fd, output, out_len, false))
 		{
 			close(out_fd);
 			return (EXIT_FAILURE);

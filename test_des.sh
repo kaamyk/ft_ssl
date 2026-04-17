@@ -687,13 +687,13 @@ c2=$(echo -n "$MSG" | ft_hex -e -p "password2" -s "AABBCCDD11223344")
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
 echo "════════════════════════════════════════"
-echo " DES-EBC (ECB MODE)"
-echo " Note: registered as 'des-ebc' in cipher.c"
+echo " DES-ECB (ECB MODE)"
+echo " Note: registered as 'des-ecb' in cipher.c"
 echo "════════════════════════════════════════"
 
-# Helper: run ft_ssl des-ebc and capture hex
+# Helper: run ft_ssl des-ecb and capture hex
 ft_ecb_hex() {
-    "$BIN" des-ebc "$@" 2>/dev/null | xxd -p | tr -d '\n'
+    "$BIN" des-ecb "$@" 2>/dev/null | xxd -p | tr -d '\n'
 }
 
 # Helper: run openssl des-ecb and capture hex
@@ -701,34 +701,34 @@ ssl_ecb_hex() {
     openssl enc -provider legacy -provider default -des-ecb "$@" 2>/dev/null | xxd -p | tr -d '\n'
 }
 
-label="des-ebc: encrypt stdin (8-byte) vs openssl des-ecb"
+label="des-ecb: encrypt stdin (8-byte) vs openssl des-ecb"
 ft=$(echo -n "$MSG8" | ft_ecb_hex -e -k "$KEY")
 ssl=$(echo -n "$MSG8" | ssl_ecb_hex -K "$KEY" -nosalt -e)
 cmp_hex "$ft" "$ssl" "$label"
 
-label="des-ebc: encrypt stdin (16-byte) vs openssl des-ecb"
+label="des-ecb: encrypt stdin (16-byte) vs openssl des-ecb"
 ft=$(echo -n "$MSG" | ft_ecb_hex -e -k "$KEY")
 ssl=$(echo -n "$MSG" | ssl_ecb_hex -K "$KEY" -nosalt -e)
 cmp_hex "$ft" "$ssl" "$label"
 
-label="des-ebc: encrypt multi-block vs openssl des-ecb"
+label="des-ecb: encrypt multi-block vs openssl des-ecb"
 ft=$(echo -n "$LONGMSG" | ft_ecb_hex -e -k "$KEY")
 ssl=$(echo -n "$LONGMSG" | ssl_ecb_hex -K "$KEY" -nosalt -e)
 cmp_hex "$ft" "$ssl" "$label"
 
-label="des-ebc: decrypt roundtrip"
+label="des-ecb: decrypt roundtrip"
 cipher=$(echo -n "$LONGMSG" | ssl_ecb_hex -K "$KEY" -nosalt -e)
 ft=$(printf "%b" "$(echo "$cipher" | sed 's/../\\x&/g')" | ft_ecb_hex -d -k "$KEY")
 exp=$(echo -n "$LONGMSG" | xxd -p | tr -d '\n')
 cmp_hex "$ft" "$exp" "$label"
 
-label="des-ebc: base64 roundtrip"
-roundtrip=$(echo -n "$LONGMSG" | "$BIN" des-ebc -e -a -k "$KEY" 2>/dev/null \
-    | "$BIN" des-ebc -d -a -k "$KEY" 2>/dev/null)
+label="des-ecb: base64 roundtrip"
+roundtrip=$(echo -n "$LONGMSG" | "$BIN" des-ecb -e -a -k "$KEY" 2>/dev/null \
+    | "$BIN" des-ecb -d -a -k "$KEY" 2>/dev/null)
 [ "$roundtrip" = "$LONGMSG" ] && ok "$label" || { fail "$label"; echo "       got: $roundtrip"; }
 
 # ECB property: identical plaintext blocks → identical ciphertext blocks (no IV chaining)
-label="des-ebc: identical plaintext blocks → identical ciphertext blocks"
+label="des-ecb: identical plaintext blocks → identical ciphertext blocks"
 IDENT_ECB=$(head -c 16 /dev/zero | tr '\0' 'A')  # two identical 8-byte blocks
 cipher=$(printf '%s' "$IDENT_ECB" | ft_ecb_hex -e -k "$KEY")
 c1="${cipher:0:16}"
@@ -741,7 +741,7 @@ else
 fi
 
 # ECB property: no IV — passing -v must not change output
-label="des-ebc: -v flag has no effect (ECB ignores IV)"
+label="des-ecb: -v flag has no effect (ECB ignores IV)"
 c1=$(echo -n "$MSG" | ft_ecb_hex -e -k "$KEY")
 c2=$(echo -n "$MSG" | ft_ecb_hex -e -k "$KEY" -v "AABBCCDDEEFF0011")
 if [ "$c1" = "$c2" ]; then
@@ -753,7 +753,7 @@ else
 fi
 
 # ECB differs from CBC on same key+plaintext
-label="des-ebc output differs from des-cbc output (same key+IV)"
+label="des-ecb output differs from des-cbc output (same key+IV)"
 ft_ecb=$(echo -n "$MSG" | ft_ecb_hex -e -k "$KEY")
 ft_cbc=$(echo -n "$MSG" | ft_hex -e -k "$KEY" -v "$IV")
 [ "$ft_ecb" != "$ft_cbc" ] && ok "$label" || {
@@ -766,7 +766,7 @@ for n in $(seq 1 24); do
     msg=$(head -c "$n" /dev/zero | tr '\0' 'E')
     ft=$(printf '%s' "$msg" | ft_ecb_hex -e -k "$KEY")
     ssl=$(printf '%s' "$msg" | ssl_ecb_hex -K "$KEY" -nosalt -e)
-    cmp_hex "$ft" "$ssl" "des-ebc: encrypt ${n}-byte input vs openssl"
+    cmp_hex "$ft" "$ssl" "des-ecb: encrypt ${n}-byte input vs openssl"
 done
 
 # ─────────────────────────────────────────────────────────────────────────────
