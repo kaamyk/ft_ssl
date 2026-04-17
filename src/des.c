@@ -278,7 +278,6 @@ void	des_generate_key(t_data *data, t_pbkdf2 *l_data)
 
 	if (!data->password && !data->raw_salt)
 		l_data->password = getpass("enter des-ecb encryption password:");
-	l_data->dk_len = 16;
 	kdf_res = PBKDF2(*l_data, HMAC256);
 	if (kdf_res)
 	{
@@ -357,28 +356,58 @@ bool	des_setup_file_in(char **to_encrypt, size_t *len_to_enc, t_pbkdf2 *l_data, 
 	return (EXIT_SUCCESS);
 }
 
-void	des_setup(char **to_encrypt, t_des_data *des_data, t_data *data)
+bool	des_setup(char **to_encrypt, t_des_data *des_data, t_data *data)
 {
 	t_pbkdf2	l_data = {
-		.password = data->password, .salt = data->salt,
-		.salt_l = data->salt_len, .dk_len = 16, .c = 10000
+		.password = data->password,
+		.salt = data->salt,
+		.salt_l = data->salt_len,
+		.dk_len = 16,
+		.c = 10000					// iteration number for DES
 	};
+	
+	/* --- GET DATA FROM SALTED FILE (-i) --- */
+	if ((data->options & IN_FILE) && data->in_file)
+	{
+		if (des_setup_file_in(to_encrypt, &des_data->len_to_enc, &l_data, data))
+			return (EXIT_FAILURE);
+	}
+	else
+	{
+		/* --- READ STDIN --- */
+		if (data->options & READ_IN)
+		{
+			data->in = cphr_getstdin(&data->options, &data->in_len);
+			des_data->len_to_enc = data->in_len;
+			*to_encrypt = data->in;
+		}
+		/* --- STRIP Salted__ HEADER IF PRESENT --- */
+		if (data->in && !memcmp(data->in, SALTBYTES, 8))
+		{
+			char		*buf = data->in;
+			uint64_t	tmp = 0;
 
-	if ((data->options & IN_FILE) && data->in_file
-	 && des_setup_file_in(to_encrypt, &des_data->len_to_enc, &l_data, data))
-		return ;
+			data->in = calloc((data->in_len - 16) + 1, 1);
+			memcpy(&tmp, buf + 8, 8);
+			data->salt = __bswap_64(tmp);
+			memcpy(data->in, buf + 16, data->in_len - 16);
+			free(buf);
+			*to_encrypt = data->in;
+			des_data->len_to_enc = data->in_len - 16;
+			l_data.salt = data->salt;
+		}
+	}
 	if (des_setup_key(&l_data, data))
-		return ;
+		return (EXIT_FAILURE);
 	if (data->options & PWP)
 		printf("salt=%016lX\nkey=%016lX\n", data->salt, data->key);
 	if (l_data.password && l_data.password != data->password)
 		free(l_data.password);
-	/* --- IF NO INPUT -> READ_STDIN */
-	if (data->options & READ_IN)
-		*to_encrypt = cphr_getstdin(&data->options, &des_data->len_to_enc);
 	if ((data->options & B64) && data->options & DECODE)
 		des_decode_b64_input(to_encrypt, &des_data->len_to_enc);
 	des_data->full_output = calloc(des_data->len_to_enc + (8 - (des_data->len_to_enc % 8)), sizeof(char));
+	if (!des_data->full_output)
+		return (ret_err_mess_code("ft_ssl: calloc:", errno));
 	generate_sub_keys(des_data->sub_keys, data->key);
 	/* --- PAD / HEX-DECODE INPUT --- */
 	if (!((data->options & B64) && (data->options & DECODE)))
@@ -386,6 +415,7 @@ void	des_setup(char **to_encrypt, t_des_data *des_data, t_data *data)
 	/* --- INITIALIZATION VECTOR */
 	if (data->raw_init_vector)
 		data->init_vector = des_setup_iv(data->raw_init_vector);
+	return (EXIT_SUCCESS);
 }
 
 void	des_output(t_data *data, char *out_buf, char *to_encrypt, size_t out_len)
@@ -429,7 +459,6 @@ void	des_output(t_data *data, char *out_buf, char *to_encrypt, size_t out_len)
 	free(to_encrypt);
 }
 
-// void	des_loop(char *to_encrypt, const size_t len_to_enc, uint64_t **full_output, uint64_t sub_keys[16], t_data *data)
 void	des_loop(char *to_encrypt, t_des_data *des_data, t_data *data)
 {
 	uint64_t	chunck_input = 0;
@@ -439,7 +468,7 @@ void	des_loop(char *to_encrypt, t_des_data *des_data, t_data *data)
 	for (size_t i = 0; i < des_data->len_to_enc; i += 8)
 	{
 		memcpy(&chunck_input, to_encrypt + i, 8);
-		chunck_input = bswap_64(chunck_input);
+		chunck_input = __bswap_64(chunck_input);
 		next_iv = chunck_input;	/* save ciphertext for CBC decrypt IV */
 		/* --- INIT VECTOR --- */
 		if (!des_data->ebc && (data->options & ENCODE) && data->init_vector)
@@ -472,19 +501,18 @@ bool	des_routine(t_data *data, char *runner, char *to_encrypt)
 		.full_output = NULL,
 		.sub_keys = {0},
 		// size_t		len_to_enc = data->in_len ? data->in_len : strlen(to_encrypt);
-		.len_to_enc = to_encrypt ? strlen(to_encrypt) : 0,
+		.len_to_enc = data->in_len,
 		.ebc = (data->algo[3] == '-' && data->algo[4] == 'e') // true only for "des-ebc"
 	};
 
-	// des_setup(&full_output, sub_keys, &len_to_enc, &to_encrypt, data);
-	des_setup(&to_encrypt, &des_data, data);
+	if (des_setup(&to_encrypt, &des_data, data))
+		return (EXIT_FAILURE);
 	if (data->options & PWP)
 	{
 		free(des_data.full_output);
 		free(to_encrypt);
 		return (EXIT_SUCCESS);
 	}
-	// des_loop(to_encrypt, len_to_enc, &full_output, sub_keys, data);
 	des_loop(to_encrypt, &des_data, data);
 	/* --- PKCS7 UNPADDING (decrypt) --- */
 	if (data->options & DECODE)
@@ -493,18 +521,31 @@ bool	des_routine(t_data *data, char *runner, char *to_encrypt)
 		if (pad > 0 && pad <= 8)
 			des_data.len_to_enc -= pad;
 	}
-	char	*out_buf = (char *)des_data.full_output;
-	size_t	out_len = des_data.len_to_enc;
+	/* --- SET HEADER FOR ENCRYPTED SALTED OUTPUT --- */
+	if (!data->raw_salt && !data->raw_key && (data->options & ENCODE))
+	{
+		uint8_t		*buf = calloc(16 + des_data.len_to_enc + 1, 1);
+		uint64_t	swapped_salt = __bswap_64(data->salt);
+
+		memcpy(buf, SALTBYTES, 8);
+		memcpy(buf + 8, &swapped_salt, 8);
+		memcpy(buf + 16, des_data.full_output, des_data.len_to_enc);
+		free(des_data.full_output);
+		des_data.full_output = (uint64_t *)buf;
+		des_data.len_to_enc += 16;
+	}
+	char	*out_buf = (char *)des_data.full_output; // uint64_t* -> char*
+	// size_t	out_len = des_data.len_to_enc;
 	/* --- BASE 64 ENCRYPTION */
 	if ((data->options & B64) && (data->options & ENCODE))
 	{
-		char	*b64 = base64_encode(out_buf, out_len);
+		char	*b64 = base64_encode(out_buf, des_data.len_to_enc);
 		free(out_buf);
 		out_buf = b64;
-		out_len = b64 ? strlen(b64) : 0;
+		des_data.len_to_enc = b64 ? strlen(b64) : 0;
 	}
 	if (out_buf)
-		des_output(data, out_buf, to_encrypt, out_len);
+		des_output(data, out_buf, to_encrypt, des_data.len_to_enc);
 	if (data->raw_key)
 		free(data->raw_key);
 	return (EXIT_SUCCESS);

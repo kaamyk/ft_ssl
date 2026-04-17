@@ -373,23 +373,19 @@ echo "reverse pw" | $FT_SSL des-cbc -p "mypass" -s "AABB112233445566" -a > "$TMP
 got=$($OPENSSL des-cbc -d -pass pass:mypass -S AABB112233445566 -a $OPENSSL_DES_FLAGS < "$TMPDIR/pw_ft_enc" 2>/dev/null)
 assert_eq "decrypt ft_ssl password output with openssl" "$got" "reverse pw"
 
-# Salted__ header check (raw binary, no -a)
-echo "salt header" | $FT_SSL des-cbc -p "password" -s "AABBCCDD11223344" > "$TMPDIR/pw_raw"
+# Salted__ header check (raw binary, no -a, no -s so header is written)
+echo "salt header" | $FT_SSL des-cbc -p "password" > "$TMPDIR/pw_raw"
 header=$(head -c 8 "$TMPDIR/pw_raw")
 assert_eq "Salted__ header present" "$header" "Salted__" "head -c 8 of encrypted output"
 
-# Salt bytes match
-salt_hex=$(xxd -p -l 8 -s 8 "$TMPDIR/pw_raw" | tr 'a-f' 'A-F')
-assert_eq "salt bytes match specified salt" "$salt_hex" "AABBCCDD11223344"
-
-# Decrypt with password, no explicit salt (read from Salted__ header)
-echo "auto salt" | $FT_SSL des-cbc -p "password" -s "1122334455667788" > "$TMPDIR/pw_autosalt_enc"
-got=$($FT_SSL des-cbc -d -p "password" < "$TMPDIR/pw_autosalt_enc")
+# Decrypt with auto-salt from Salted__ header (encrypt without -s, decrypt with -i)
+echo "auto salt" | $FT_SSL des-cbc -p "password" > "$TMPDIR/pw_autosalt_enc"
+got=$($FT_SSL des-cbc -d -p "password" -i "$TMPDIR/pw_autosalt_enc")
 assert_eq "decrypt with auto-salt from Salted__ header" "$got" "auto salt"
 
-# Round-trip with password only (random salt)
+# Round-trip with password only (random salt, use -i for decrypt to parse header)
 echo "random salt rt" | $FT_SSL des-cbc -p "randompass" > "$TMPDIR/pw_randsalt_enc"
-got=$($FT_SSL des-cbc -d -p "randompass" < "$TMPDIR/pw_randsalt_enc")
+got=$($FT_SSL des-cbc -d -p "randompass" -i "$TMPDIR/pw_randsalt_enc")
 assert_eq "round-trip with random salt" "$got" "random salt rt"
 
 # Password-based ECB
@@ -430,6 +426,67 @@ touch "$TMPDIR/readonly"
 chmod 000 "$TMPDIR/readonly"
 assert_fail "permission denied on output file" "echo test | $FT_SSL base64 -o $TMPDIR/readonly"
 chmod 644 "$TMPDIR/readonly"
+
+########################################################################
+# 6b. WRONG / MALFORMED INPUT FILES
+########################################################################
+section "Wrong / malformed input"
+
+# DES -i with wrong magic bytes (no Salted__ header)
+echo "not a salted file" > "$TMPDIR/bad_header"
+assert_fail "des -i: wrong magic bytes rejected" \
+    "$FT_SSL des-cbc -d -p password -i $TMPDIR/bad_header"
+
+# DES -i with truncated file (< 16 bytes, can't hold header + salt)
+printf 'Salted_' > "$TMPDIR/truncated"
+assert_fail "des -i: truncated file (< 16 bytes) rejected" \
+    "$FT_SSL des-cbc -d -p password -i $TMPDIR/truncated"
+
+# DES -i with exactly the header but no ciphertext (16 bytes, 0 ciphertext)
+printf 'Salted__\x00\x11\x22\x33\x44\x55\x66\x77' > "$TMPDIR/header_only"
+assert_no_crash "des -i: header-only file (no ciphertext, no crash)" \
+    "$FT_SSL des-cbc -d -p password -i $TMPDIR/header_only"
+
+# DES decrypt: ciphertext not a multiple of 8 bytes
+printf 'ABCDE' > "$TMPDIR/bad_block"
+assert_no_crash "des -k: non-block-aligned input (no crash)" \
+    "$FT_SSL des-cbc -d -k 6162636461626364 < $TMPDIR/bad_block"
+
+# DES stdin: binary garbage that starts with Salted__ but has no real ciphertext
+printf 'Salted__\xde\xad\xbe\xef\xca\xfe\xba\xbe' > "$TMPDIR/fake_salted_stdin"
+assert_no_crash "des stdin: Salted__ header with no ciphertext (no crash)" \
+    "$FT_SSL des-cbc -d -p password < $TMPDIR/fake_salted_stdin"
+
+# Base64 decode: completely invalid characters
+got=$(echo '####' | $FT_SSL base64 -d 2>/dev/null)
+assert_eq "base64 decode: all-invalid chars gives empty-ish output (no crash)" \
+    "$(echo '####' | $FT_SSL base64 -d 2>/dev/null | wc -c | tr -d ' ')" "3"
+
+# Base64 decode with -i on a file containing only whitespace
+printf '   \n\t  \n' > "$TMPDIR/whitespace_only"
+assert_no_crash "base64 decode: whitespace-only file (no crash)" \
+    "$FT_SSL base64 -d -i $TMPDIR/whitespace_only"
+
+# DES: -k with key longer than 16 hex chars (should truncate, not crash)
+assert_no_crash "des -k: key longer than 16 hex chars (no crash)" \
+    "echo test | $FT_SSL des-ecb -k AABBCCDDEEFF00112233445566778899"
+
+# DES: -p with empty password string
+assert_no_crash "des -p: empty password string (no crash)" \
+    "echo test | $FT_SSL des-cbc -p '' -s AABBCCDD11223344"
+
+# DES: -v with too-short IV (should pad, not crash)
+assert_no_crash "des -v: short IV (no crash)" \
+    "echo test | $FT_SSL des-cbc -k 6162636461626364 -v 0011"
+
+# DES -i: non-existent input file
+assert_fail "des -i: non-existent file rejected" \
+    "$FT_SSL des-cbc -d -p password -i $TMPDIR/does_not_exist_xyz"
+
+# DES: encrypt + decrypt round-trip through stdin with Salted__ header
+echo "header round-trip test" | $FT_SSL des-cbc -p "testpass" > "$TMPDIR/salted_rt"
+got=$($FT_SSL des-cbc -d -p "testpass" < "$TMPDIR/salted_rt")
+assert_eq "des stdin: Salted__ header round-trip" "$got" "header round-trip test"
 
 ########################################################################
 # 7. CRASH AND LEAK TESTS

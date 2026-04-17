@@ -50,60 +50,12 @@ bool	cphr_exec(t_data *data, t_algo_fn f)
 		data->in = file_to_str(data->in_file, &data->len_file);
 		if (!data->in)
 			return (EXIT_FAILURE);
+		data->in_len = data->len_file;
 		if (f(data, data->in_file, data->in))
 			exit_err_code(data, EX_OSERR);
 	}
 	return (EXIT_SUCCESS);
 }
-
-// bool	cphr_output(t_data *data, uint8_t *output, size_t out_len, uint8_t *to_encrypt, size_t to_enc_len)
-// {
-// 	int	out_fd = STDOUT_FILENO;
-	
-// 	if ((data->options & OUT_FILE) && data->out_file)
-// 	{
-// 		out_fd = open(data->out_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-// 		if (out_fd < 0)
-// 			ret_err_mess_code(, EX_OSERR);
-// 	}
-// 	if ((data->options & B64) && (data->options & ENCODE))
-// 	{
-// 		char	*buf = NULL;
-// 		size_t	buf_l = 0;
-// 		char *runner = NULL;
-// 		char *last_b64 = NULL;
-		
-// 		buf = base64_encode((char *)output, out_len);
-// 		if (!buf)
-// 			return (EXIT_FAILURE);
-// 		buf_l = strlen(buf);
-// 		runner = buf;
-// 		last_b64 = buf + buf_l;
-		
-// 		while (last_b64 - runner >= 64)
-// 		{
-// 			if (write(out_fd, runner, 64) < 0
-// 			 || write(out_fd, "\n", 1) < 0)
-// 				return (ret_err_mess_code("ft_ssl: write() :", errno));
-// 			runner += 64;
-// 		}
-// 		if (runner < last_b64)
-// 		{
-// 			if (write(out_fd, runner, last_b64 - runner) < 0
-// 			 || write(out_fd, "\n", 1) < 0)
-// 			return (ret_err_mess_code("ft_ssl: write() :", errno));
-// 		}
-// 		free(buf);
-// 	}
-// 	else
-// 		if (write(out_fd, output, out_len) < 0)
-// 		return (ret_err_mess_code("ft_ssl: write() :", errno));
-// 	free(output);
-// 	if (out_fd != STDOUT_FILENO)
-// 		close(out_fd);
-// 	free(to_encrypt);
-// 	return (EXIT_SUCCESS);
-// }
 
 bool	cphr_main(t_data *data, char **argv)
 {
@@ -122,7 +74,8 @@ bool	cphr_main(t_data *data, char **argv)
 	{
 		if (!strcmp(ciphers[i].name, data->algo))
 		{
-			cphr_exec(data, ciphers[i].fn);
+			if (cphr_exec(data, ciphers[i].fn))
+				return (EXIT_FAILURE);
 			break ;
 		}
 	}

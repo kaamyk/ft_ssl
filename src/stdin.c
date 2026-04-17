@@ -18,9 +18,8 @@ char 	*read_stdin(size_t *len_out)
 		tmp = malloc(total + nread + 1);
 		if (tmp == NULL)
 		{
-			fprintf(stderr, "Fatal Error: malloc: %s\n", strerror(errno));
 			free(input);
-			return (NULL);
+			return (ret_err_mess_code_ptr("ft_ssl: malloc", errno));
 		}
 		memcpy(tmp, input, total);
 		memcpy(tmp + total, buf, nread);

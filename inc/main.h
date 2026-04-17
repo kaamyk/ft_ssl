@@ -74,21 +74,21 @@ typedef struct	s_data
 	// const char	algostr[3][7];
 	uint16_t	options;
 	char		*algo;
-	char		*in;
+	char		*in_file;	//	in_file name form arguments
+	size_t		len_file;	//	length of file
+	char		*in;		//	data got from inputs
+	size_t		in_len;		//	length of data input
+	char		*out_file;	//	out file name 
 	char		*string;
-	char		*raw_key;
- 	uint64_t	key;
-	char		*password;
-	uint64_t	salt;
-	char		*raw_salt;
-	size_t		salt_len;
-	char		*raw_init_vector;
-	uint64_t	init_vector;
-	char		**inputs;
-	char		*in_file;
-	size_t		len_file;
-	char		*out_file;
-	size_t		in_len;
+	char		*raw_key;	// 	key from arguments
+ 	uint64_t	key;		//	final key, as used by program
+	char		*password;	//	password from arguments
+	char		*raw_salt;	//	salt from argument
+	size_t		salt_len;	
+	uint64_t	salt;		//	salt as used by program
+	char		*raw_init_vector;	// iv from argument
+	uint64_t	init_vector;//	iv used by program
+	char		**inputs;	//	list of inputs for hash functions
 }				t_data;
 
 typedef struct	s_des_data

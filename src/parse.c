@@ -131,6 +131,8 @@ char	**cphr_parse_opt(t_data *data, char **runner)
 				data->options |= USAGE;
 				break;
 			case 'k':
+				if (!*(runner + 1))
+					exit_err_mess("ft_ssl: option '-k' requires an argument\n", data, EX_USAGE);
 				data->raw_key = *(++runner);
 				break ;
 			case 'p':

@@ -54,7 +54,7 @@ int main( int argc, char **argv )
 		free(data.in);
 	}
 	if (data.algo)
-		exit_err_mess_opt("ft_ssl: '%s': invalid argument. Run './ft_ssl -h' for usage\n", data.algo, &data, EX_USAGE);
+		exit_err_mess_opt("ft_ssl: '%s': invalid command. Available commands: md5, sha256, base64, des, des-cbc, des-ecb. Run './ft_ssl -h' for usage\n", data.algo, &data, EX_USAGE);
 	else
 		exit_err_mess("ft_ssl: no algorithm given. Run './ft_ssl -h' for usage\n", &data, EX_USAGE);
 }

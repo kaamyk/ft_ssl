@@ -91,28 +91,28 @@ char	*base64_decode(const char *input, const size_t input_l)
 	return (res);
 }
 
-void	b64_output(t_data *data, char *output, size_t out_len)
+bool	b64_output(t_data *data, char *output, size_t out_len)
 {
 	int	out_fd = STDOUT_FILENO;
-	
+
 	if ((data->options & OUT_FILE) && data->out_file)
 	{
 		out_fd = open(data->out_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 		if (out_fd < 0)
-			return ((void)ret_err_mess_code("ft_ssl: B64Output", errno));
+			return (ret_err_mess_code("ft_ssl: B64Output", errno));
 	}
 	if (data->options & ENCODE)
 	{
 		char	*runner = output;
 		char	*last = output + out_len;
-		
+
 		while (last - runner >= 64)
 		{
 			if (write(out_fd, runner, 64) < 0
 			 || write(out_fd, "\n", 1) < 0)
 			{
 				close(out_fd);
-				return ((void)ret_err_mess_code("ft_ssl: write :", errno));
+				return (ret_err_mess_code("ft_ssl: write :", errno));
 			}
 			runner += 64;
 		}
@@ -122,7 +122,7 @@ void	b64_output(t_data *data, char *output, size_t out_len)
 			 || write(out_fd, "\n", 1) < 0)
 			{
 				close(out_fd);
-				return ((void)ret_err_mess_code("ft_ssl: write :", errno));
+				return (ret_err_mess_code("ft_ssl: write :", errno));
 			}
 		}
 	}
@@ -131,16 +131,19 @@ void	b64_output(t_data *data, char *output, size_t out_len)
 		if (write(out_fd, output, out_len) < 0)
 		{
 			close(out_fd);
-			return ((void)ret_err_mess_code("ft_ssl: write :", errno));
+			return (ret_err_mess_code("ft_ssl: write :", errno));
 		}
 	}
+	if (out_fd != STDOUT_FILENO)
+		close(out_fd);
+	return (EXIT_SUCCESS);
 }
 
 bool 	b64_routine(t_data *data, char *runner, char *to_hash)
 {
 	(void)runner;
 	char	*res = NULL;
-	size_t	in_len = data->len_file;
+	size_t	in_len = data->in_len;
 	size_t	out_len = 0;
 
 	data->options |= B64;
@@ -163,7 +166,7 @@ bool 	b64_routine(t_data *data, char *runner, char *to_hash)
 		res = strdup(to_hash);
 	free(to_hash);
 	/* --- OUTPUT --- */
-	b64_output(data, res, out_len);
+	bool ret = b64_output(data, res, out_len);
 	free(res);
-	return (EXIT_SUCCESS);
+	return (ret);
 }
