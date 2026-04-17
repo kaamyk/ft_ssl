@@ -24,7 +24,6 @@ bool	dgst_set_option(char *runner, uint16_t *options)
 bool	dgst_parser(t_data *data, char **argv)
 {
 	char	**runner = argv + 1;
-	char	*stdin = NULL;
 	bool	algo = 0;
 	
 	//	-- ALGORITHM --
@@ -38,13 +37,10 @@ bool	dgst_parser(t_data *data, char **argv)
 	//	-- OPTIONS --
 	while (*runner && **runner == '-' && !(data->options & (USAGE | STRING)))
 	{
-		if (**runner == '-')
-		{
-			if (strlen(*runner) != 2)
-				exit_err_mess_opt("ft_ssl: '%s': invalid option.", *runner, data, EX_USAGE);
-			if (dgst_set_option(*runner, &data->options))
-				exit_err_mess_opt("ft_ssl: Invalid option '%s'. Run './ft_ssl -h' to print usage.\n", *runner, data, EX_USAGE);
-		}
+		if (strlen(*runner) != 2)
+			exit_err_mess_opt("ft_ssl: '%s': invalid option.", *runner, data, EX_USAGE);
+		if (dgst_set_option(*runner, &data->options))
+			exit_err_mess_opt("ft_ssl: invalid option '%s'. Run './ft_ssl -h' to print usage.\n", *runner, data, EX_USAGE);
 		++runner;
 	}
 	if (data->options & (STRING))
@@ -109,10 +105,7 @@ char	**cphr_parse_opt(t_data *data, char **runner)
 			case 'o':
 				data->options |= OUT_FILE;
 				if (*(runner + 1) && **(runner + 1) != '-')
-				{
 					data->out_file = *(++runner);
-					// data->options &= ~(OUT_FILE);
-				}
 				else
 					exit_err_mess_opt2("ft_ssl: '%s': invalid argument. Run './ft_ssl %s -h for usage.", *runner, data->algo, data, EX_USAGE);
 				break ;
@@ -151,12 +144,12 @@ char	**cphr_parse_opt(t_data *data, char **runner)
 				data->options &= ~(READ_IN);
 				break ;
 			default:
-				exit_err_mess_opt2("ft_ssl: '%s': unvalid option. Run './ft_ssl %s -h for usage.", *runner, data->algo, data, EX_USAGE);
+				exit_err_mess_opt2("ft_ssl: '%s': invalid option. Run './ft_ssl %s -h for usage.", *runner, data->algo, data, EX_USAGE);
 				break ;
 		}
 	}
 	else 
-		exit_err_mess_opt2("ft_ssl: Invalid option. Run './ft_ssl %s -h' to print usage.\n", *runner, data->algo, data, EX_USAGE);
+		exit_err_mess_opt2("ft_ssl: invalid option. Run './ft_ssl %s -h' to print usage.\n", *runner, data->algo, data, EX_USAGE);
 	return (runner);
 }
 
@@ -173,7 +166,7 @@ void	cphr_parse_opt_args(t_data *data)
 		for (uint8_t i = 0; data->raw_key[i]; i++)
 			data->raw_key[i] = toupper(data->raw_key[i]);
 		if (cphr_parse_hexa_input(data->raw_key))
-			exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", data->raw_key, data->algo, data, EX_USAGE);
+			exit_err_mess_opt2("ft_ssl: '%s': invalid argument. Run './ft_ssl %s -h for usage.", data->raw_key, data->algo, data, EX_USAGE);
 		data->key = atohex(data->raw_key);
 	}
 	if (data->password)
@@ -181,7 +174,7 @@ void	cphr_parse_opt_args(t_data *data)
 		for (uint32_t i = 0; data->password[i]; i++)
 		{
 			if (!isascii(data->password[i]))
-				exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", data->password, data->algo, data, EX_USAGE);
+				exit_err_mess_opt2("ft_ssl: '%s': invalid argument. Run './ft_ssl %s -h for usage.", data->password, data->algo, data, EX_USAGE);
 		}
 	}
 	if (data->raw_salt)
@@ -189,21 +182,20 @@ void	cphr_parse_opt_args(t_data *data)
 		for (uint8_t i = 0; data->raw_salt[i]; i++)
 			data->raw_salt[i] = toupper(data->raw_salt[i]);
 		if (cphr_parse_hexa_input(data->raw_salt))
-			exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", data->raw_salt, data->algo, data, EX_USAGE);
+			exit_err_mess_opt2("ft_ssl: '%s': invalid argument. Run './ft_ssl %s -h for usage.", data->raw_salt, data->algo, data, EX_USAGE);
 		data->salt = strtoull(data->raw_salt, NULL, 16);
 		data->salt_len = ceil(strlen(data->raw_salt) / 2);
 	}
 	if (data->raw_init_vector)
 	{
 		if (cphr_parse_hexa_input(data->raw_init_vector))
-			exit_err_mess_opt2("ft_ssl: '%s': unvalid argument. Run './ft_ssl %s -h for usage.", data->raw_init_vector, data->algo, data, EX_USAGE);
+			exit_err_mess_opt2("ft_ssl: '%s': invalid argument. Run './ft_ssl %s -h for usage.", data->raw_init_vector, data->algo, data, EX_USAGE);
 	}
 }
 
 bool	cphr_parser(t_data *data, char **argv)
 {
 	char	**runner = argv + 1;
-	char	*stdin = NULL;
 	bool	algo = 0;
 	
 	//	-- ALGORITHM --

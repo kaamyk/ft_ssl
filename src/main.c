@@ -48,11 +48,7 @@ int main( int argc, char **argv )
 		if (!strcmp(cmds[i].name, data.algo))
 			return(cmds[i].fn(&data, argv));
 	}
-	if (data.in)
-	{
-		bzero(&data, sizeof(t_data));
-		free(data.in);
-	}
+	exit_free(&data);
 	if (data.algo)
 		exit_err_mess_opt("ft_ssl: '%s': invalid command. Available commands: md5, sha256, base64, des, des-cbc, des-ecb. Run './ft_ssl -h' for usage\n", data.algo, &data, EX_USAGE);
 	else

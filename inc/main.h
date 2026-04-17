@@ -141,6 +141,7 @@ typedef struct MD5_CTX
 }				t_MD5_CTX;
 
 //	error.c
+void	exit_free(t_data *data);
 void	exit_err_code(t_data *data, const uint8_t ret_value);
 void	exit_err_mess(const char *mess, t_data *data, const uint8_t ret_value);
 void	exit_err_mess_code(const char *mess, const int errnum, t_data *data, const uint8_t ret_value);

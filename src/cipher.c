@@ -22,7 +22,6 @@ char	*cphr_getstdin(uint16_t *options, size_t *len_out)
 		return (ret_err_mess_code_ptr("ft_ssl: fatal error: %s\n", errno));
 	if ((*options & B64) && (*options & DECODE))
 	{
-		len = strlen(res);
 		while (j < len)
 		{
 			while (res[j] && is_whitespace(res[j]))
@@ -56,7 +55,7 @@ bool	cphr_exec(t_data *data, t_algo_fn f)
 			exit_err_code(data, EX_OSERR);
 		data->options &= ~(READ_IN);
 	}
-	if (data->in_file)
+	else if (data->in_file)
 	{
 		data->in = file_to_str(data->in_file, &data->len_file);
 		if (!data->in)

@@ -292,7 +292,7 @@ echo "════════════════════════�
 echo " EDGE CASES — ERROR HANDLING"
 echo "════════════════════════════════════════"
 
-# Invalid hex salt must exit with a non-zero code
+# invalid hex salt must exit with a non-zero code
 echo -n "x" | "$BIN" des -e -P -p "pass" -s "ZZZZZZZZZZZZZZZZ" 2>/dev/null
 if [ $? -ne 0 ]; then
     ok "invalid hex salt exits non-zero"

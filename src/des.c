@@ -278,7 +278,7 @@ void	des_generate_key(const bool ecb, t_data *data, t_pbkdf2 *l_data)
 		if (ecb)
 			l_data->password = getpass("enter des-ecb encryption password:");
 		else
-			l_data->password = getpass("enter des-ccb encryption password:");
+			l_data->password = getpass("enter des-cbc encryption password:");
 	}
 	kdf_res = PBKDF2(*l_data, HMAC256);
 	if (kdf_res)
@@ -477,7 +477,7 @@ void	des_loop(char *to_encrypt, t_des_data *des_data, t_data *data)
 		if (!des_data->ecb)
 		{
 			if (data->options & ENCODE)
-				data->init_vector = chunk_input;	/* big-endian ciphertext, before bswap */
+				data->init_vector = chunk_input;	/* big-endian ciphertext */
 			else
 				data->init_vector = next_iv;		/* original ciphertext block */
 		}
@@ -493,7 +493,7 @@ bool	des_routine(t_data *data, char *runner, char *to_encrypt)
 		.full_output = NULL,
 		.sub_keys = {0},
 		.len_to_enc = data->in_len,
-		.ecb = (data->algo[3] == '-' && data->algo[4] == 'e') // true only for "des-ecb"
+		.ecb = !strcmp("des-ecb", data->algo) // true only for "des-ecb"
 	};
 
 	if (des_setup(&to_encrypt, &des_data, data))

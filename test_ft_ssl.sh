@@ -393,7 +393,7 @@ assert_eq "password encrypt: ft_ssl vs openssl (des-ecb)" "$ft_pw_ecb" "$ssl_pw_
 ########################################################################
 section "Error handling"
 
-# Invalid command
+# invalid command
 assert_fail "invalid command 'foobar'" "$FT_SSL foobar"
 
 # Check that error message lists available commands
@@ -407,7 +407,7 @@ fi
 # Missing key argument
 assert_fail "missing key value after -k" "echo test | $FT_SSL des-ecb -k"
 
-# Invalid hex key
+# invalid hex key
 assert_fail "invalid hex key (ZZZZ)" "echo test | $FT_SSL des-ecb -k ZZZZ"
 
 # Missing IV for CBC (should error or use zero IV — just must not crash)
