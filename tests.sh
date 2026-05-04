@@ -12,7 +12,7 @@ echo '================================='
 echo 'echo "42 is nice" | ./ft_ssl md5'
 echo "42 is nice" | valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes -q ./ft_ssl md5
 echo '------'
-echo "42 is nice" | valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes -q openssl md5
+echo "42 is nice" | openssl md5
 echo '================================='
 
 echo 'echo "42 is nice" | ./ft_ssl md5 -p'

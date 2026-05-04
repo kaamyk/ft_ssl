@@ -343,7 +343,7 @@ bool	des_setup_file_in(char **to_encrypt, size_t *len_to_enc, t_pbkdf2 *l_data, 
 	
 	if (!buf || data->len_file < 16)
 		return (ret_err_mess("ft_ssl: to_encrypt invalid."));
-	if (memcmp(SALTBYTES, data->in, 8))
+	if (data->options & DECODE && memcmp(SALTBYTES, data->in, 8))
 		return (ret_err_mess("ft_ssl: des: wrong magic bytes in input file."));
 	memcpy(&tmp, buf + 8, 8);
 	l_data->salt = __bswap_64(tmp);
@@ -371,8 +371,12 @@ bool	des_setup(char **to_encrypt, t_des_data *des_data, t_data *data)
 	/* --- GET DATA FROM SALTED FILE (-i) --- */
 	if ((data->options & IN_FILE) && data->in_file)
 	{
-		if (des_setup_file_in(to_encrypt, &des_data->len_to_enc, &l_data, data))
-			return (EXIT_FAILURE);
+		if ((data->options & DECODE) && !data->raw_key)
+		{
+			if (des_setup_file_in(to_encrypt, &des_data->len_to_enc, &l_data, data))
+				return (EXIT_FAILURE);
+		}
+		/* For ENCODE or raw-key DECODE: file content already set in *to_encrypt by cphr_exec */
 	}
 	else
 	{
