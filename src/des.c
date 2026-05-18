@@ -296,12 +296,20 @@ void	des_generate_key(const bool ecb, t_data *data, t_pbkdf2 *l_data)
 
 void	des_decode_b64_input(char **to_encrypt, size_t *len_to_enc)
 {
-	char	*b64_input = NULL;
-	size_t	b64_len = 0;
+	char	*b64_input = *to_encrypt;
+	size_t	b64_len = *len_to_enc;
 	size_t	pad_count = 0;
+	size_t	i = 0;
+	size_t	j = 0;
 
-	b64_input = *to_encrypt;
-	b64_len = *len_to_enc;
+	while (j < b64_len)
+	{
+		while (j < b64_len && is_whitespace(b64_input[j]))
+			j++;
+		if (j < b64_len)
+			b64_input[i++] = b64_input[j++];
+	}
+	b64_len = i;
 	if (b64_len >= 2)
 	{
 		if (b64_input[b64_len - 1] == '=') pad_count++;
@@ -365,60 +373,71 @@ bool	des_setup(char **to_encrypt, t_des_data *des_data, t_data *data)
 		.salt = data->salt,
 		.salt_l = data->salt_len,
 		.dk_len = 16,
-		.c = 10000					// iteration number for DES
+		.c = 10000
 	};
-	
-	/* --- GET DATA FROM SALTED FILE (-i) --- */
-	if ((data->options & IN_FILE) && data->in_file)
-	{
-		if ((data->options & DECODE) && !data->raw_key)
-		{
-			if (des_setup_file_in(to_encrypt, &des_data->len_to_enc, &l_data, data))
-				return (EXIT_FAILURE);
-		}
-		/* For ENCODE or raw-key DECODE: file content already set in *to_encrypt by cphr_exec */
-	}
-	else
-	{
-		/* --- READ STDIN --- */
-		if (data->options & READ_IN)
-		{
-			data->in = cphr_getstdin(&data->options, &data->in_len);
-			des_data->len_to_enc = data->in_len;
-			*to_encrypt = data->in;
-		}
-		/* --- STRIP Salted__ HEADER IF PRESENT --- */
-		if (data->in && !memcmp(data->in, SALTBYTES, 8))
-		{
-			char		*buf = data->in;
-			uint64_t	tmp = 0;
 
-			data->in = calloc((data->in_len - 16) + 1, 1);
-			memcpy(&tmp, buf + 8, 8);
-			data->salt = __bswap_64(tmp);
-			memcpy(data->in, buf + 16, data->in_len - 16);
-			free(buf);
-			*to_encrypt = data->in;
-			des_data->len_to_enc = data->in_len - 16;
-			l_data.salt = data->salt;
-		}
+	/* --- STEP 1: READ STDIN (file content already set by cphr_exec for IN_FILE) --- */
+	if (!(data->options & IN_FILE) && (data->options & READ_IN))
+	{
+		data->in = cphr_getstdin(&data->options, &data->in_len);
+		des_data->len_to_enc = data->in_len;
+		*to_encrypt = data->in;
 	}
+
+	/* --- STEP 2: BASE64-DECODE INPUT FIRST so header is visible --- */
+	if ((data->options & B64) && (data->options & DECODE))
+		des_decode_b64_input(to_encrypt, &des_data->len_to_enc);
+
+	/* --- STEP 3: STRIP Salted__ HEADER (password-based decode only) --- */
+	if (!data->raw_key && (data->options & DECODE)
+		&& *to_encrypt && des_data->len_to_enc >= 16
+		&& !memcmp(*to_encrypt, SALTBYTES, 8))
+	{
+		char		*buf = *to_encrypt;
+		uint64_t	tmp = 0;
+		char		*cipher = NULL;
+
+		des_data->len_to_enc -= 16;
+		cipher = calloc(des_data->len_to_enc + 1, 1);
+		if (!cipher)
+			return (ret_err_mess_code("ft_ssl: calloc", errno));
+		memcpy(&tmp, buf + 8, 8);
+		l_data.salt = __bswap_64(tmp);
+		l_data.salt_l = sizeof(uint64_t);
+		memcpy(cipher, buf + 16, des_data->len_to_enc);
+		free(buf);
+		*to_encrypt = cipher;
+	}
+
+	/* --- STEP 3b: GENERATE RANDOM SALT (password-only encrypt, no explicit -s) --- */
+	if (!data->raw_key && !data->raw_salt && (data->options & ENCODE))
+	{
+		int	fd = open("/dev/urandom", O_RDONLY);
+		if (fd >= 0)
+		{
+			(void)read(fd, &data->salt, sizeof(uint64_t));
+			close(fd);
+		}
+		l_data.salt = data->salt;
+		l_data.salt_l = sizeof(uint64_t);
+	}
+
+	/* --- STEP 4: DERIVE KEY --- */
 	if (des_setup_key(&l_data, des_data->ecb, data))
 		return (EXIT_FAILURE);
 	if (data->options & PWP)
 		printf("salt=%016lX\nkey=%016lX\n", data->salt, data->key);
 	if (l_data.password && l_data.password != data->password)
 		free(l_data.password);
-	if ((data->options & B64) && data->options & DECODE)
-		des_decode_b64_input(to_encrypt, &des_data->len_to_enc);
+
 	des_data->full_output = calloc(des_data->len_to_enc + (8 - (des_data->len_to_enc % 8)), sizeof(char));
 	if (!des_data->full_output)
 		return (ret_err_mess_code("ft_ssl: calloc:", errno));
 	generate_sub_keys(des_data->sub_keys, data->key);
-	/* --- PAD / HEX-DECODE INPUT --- */
-	if (!((data->options & B64) && (data->options & DECODE)))
+	/* --- PAD PLAINTEXT (encode only) --- */
+	if (data->options & ENCODE)
 		*to_encrypt = des_setup_input(data, *to_encrypt, &des_data->len_to_enc);
-	/* --- INITIALIZATION VECTOR */
+	/* --- INITIALIZATION VECTOR --- */
 	if (data->raw_init_vector)
 		data->init_vector = des_setup_iv(data->raw_init_vector);
 	return (EXIT_SUCCESS);

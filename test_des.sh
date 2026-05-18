@@ -835,6 +835,91 @@ done
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
 echo "════════════════════════════════════════"
+echo " SALTED__ HEADER BEHAVIOR"
+echo "════════════════════════════════════════"
+
+SALTED_MAGIC="53616c7465645f5f"
+PW="testpass42"
+EXPL_SALT="AABBCCDDEEFF0011"
+TMP_PW_IN=$(mktemp)
+TMP_PW_ENC=$(mktemp)
+TMP_PW_DEC=$(mktemp)
+echo -n "$LONGMSG" > "$TMP_PW_IN"
+
+has_salted_header() { head -c 8 "$1" 2>/dev/null | xxd -p | tr -d '\n'; }
+
+label="password-only: output starts with Salted__ header"
+"$BIN" des -e -p "$PW" -i "$TMP_PW_IN" -o "$TMP_PW_ENC" 2>/dev/null
+magic=$(has_salted_header "$TMP_PW_ENC")
+[ "$magic" = "$SALTED_MAGIC" ] && ok "$label" || {
+    fail "$label"
+    echo "       first 8 bytes: $magic (expected $SALTED_MAGIC)"
+}
+
+label="password + explicit -s: output has NO Salted__ header"
+"$BIN" des -e -p "$PW" -s "$EXPL_SALT" -i "$TMP_PW_IN" -o "$TMP_PW_ENC" 2>/dev/null
+magic=$(has_salted_header "$TMP_PW_ENC")
+[ "$magic" != "$SALTED_MAGIC" ] && ok "$label" || {
+    fail "$label"
+    echo "       first 8 bytes: $magic (should NOT be $SALTED_MAGIC)"
+}
+
+label="raw key (-k): output has NO Salted__ header"
+"$BIN" des -e -k "$KEY" -v "$IV" -i "$TMP_PW_IN" -o "$TMP_PW_ENC" 2>/dev/null
+magic=$(has_salted_header "$TMP_PW_ENC")
+[ "$magic" != "$SALTED_MAGIC" ] && ok "$label" || {
+    fail "$label"
+    echo "       first 8 bytes: $magic (should NOT be $SALTED_MAGIC)"
+}
+
+label="password-only: random salt differs between runs"
+"$BIN" des -e -p "$PW" -i "$TMP_PW_IN" -o "$TMP_PW_ENC" 2>/dev/null
+salt1=$(xxd -p "$TMP_PW_ENC" | tr -d '\n' | cut -c17-32)
+"$BIN" des -e -p "$PW" -i "$TMP_PW_IN" -o "$TMP_PW_ENC" 2>/dev/null
+salt2=$(xxd -p "$TMP_PW_ENC" | tr -d '\n' | cut -c17-32)
+[ "$salt1" != "$salt2" ] && ok "$label" || {
+    fail "$label"
+    echo "       both runs produced salt: $salt1"
+}
+
+label="password-only: file roundtrip (header read on decrypt)"
+"$BIN" des -e -p "$PW" -i "$TMP_PW_IN" -o "$TMP_PW_ENC" 2>/dev/null
+"$BIN" des -d -p "$PW" -i "$TMP_PW_ENC" -o "$TMP_PW_DEC" 2>/dev/null
+cmp -s "$TMP_PW_IN" "$TMP_PW_DEC" && ok "$label" || fail "$label"
+
+label="password + explicit -s: file roundtrip (salt supplied on both sides)"
+"$BIN" des -e -p "$PW" -s "$EXPL_SALT" -i "$TMP_PW_IN" -o "$TMP_PW_ENC" 2>/dev/null
+"$BIN" des -d -p "$PW" -s "$EXPL_SALT" -i "$TMP_PW_ENC" -o "$TMP_PW_DEC" 2>/dev/null
+cmp -s "$TMP_PW_IN" "$TMP_PW_DEC" && ok "$label" || fail "$label"
+
+label="password-only: base64 file roundtrip"
+"$BIN" des -e -a -p "$PW" -i "$TMP_PW_IN" -o "$TMP_PW_ENC" 2>/dev/null
+"$BIN" des -d -a -p "$PW" -i "$TMP_PW_ENC" -o "$TMP_PW_DEC" 2>/dev/null
+cmp -s "$TMP_PW_IN" "$TMP_PW_DEC" && ok "$label" || fail "$label"
+
+label="cross-compat: ft_ssl encrypt → openssl decrypt (password-only)"
+"$BIN" des -e -p "$PW" -i "$TMP_PW_IN" -o "$TMP_PW_ENC" 2>/dev/null
+openssl enc -provider legacy -provider default -des-cbc -d -pbkdf2 \
+    -pass "pass:$PW" -in "$TMP_PW_ENC" -out "$TMP_PW_DEC" 2>/dev/null
+cmp -s "$TMP_PW_IN" "$TMP_PW_DEC" && ok "$label" || fail "$label"
+
+label="cross-compat: openssl encrypt → ft_ssl decrypt (password-only)"
+openssl enc -provider legacy -provider default -des-cbc -pbkdf2 \
+    -pass "pass:$PW" -in "$TMP_PW_IN" -out "$TMP_PW_ENC" 2>/dev/null
+"$BIN" des -d -p "$PW" -i "$TMP_PW_ENC" -o "$TMP_PW_DEC" 2>/dev/null
+cmp -s "$TMP_PW_IN" "$TMP_PW_DEC" && ok "$label" || fail "$label"
+
+label="cross-compat: ft_ssl -s matches openssl -S (explicit salt, raw ciphertext)"
+"$BIN" des -e -p "$PW" -s "$EXPL_SALT" -i "$TMP_PW_IN" -o "$TMP_PW_ENC" 2>/dev/null
+openssl enc -provider legacy -provider default -des-cbc -d -pbkdf2 \
+    -pass "pass:$PW" -S "$EXPL_SALT" -in "$TMP_PW_ENC" -out "$TMP_PW_DEC" 2>/dev/null
+cmp -s "$TMP_PW_IN" "$TMP_PW_DEC" && ok "$label" || fail "$label"
+
+rm -f "$TMP_PW_IN" "$TMP_PW_ENC" "$TMP_PW_DEC"
+
+# ─────────────────────────────────────────────────────────────────────────────
+echo ""
+echo "════════════════════════════════════════"
 printf " Results: ${GRN}%d passed${RST}  ${RED}%d failed${RST}\n" "$PASS" "$FAIL"
 echo "════════════════════════════════════════"
 echo ""

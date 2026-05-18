@@ -29,33 +29,29 @@ void	encode(uint8_t *output, uint32_t *input, uint32_t len)
 
 char	*file_to_str(const char *filename, size_t *len_out)
 {
+	FILE	*file = fopen(filename, "rb");
 	char	*content = NULL;
-	char	*buf[256] = {0};
-	char	*tmp = NULL;
-	FILE	*file = fopen(filename, "r");
-	size_t	len_read = 0;
-	
-	if (file == NULL)
+	size_t	len = 0;
+
+	if (!file)
 		return (ret_err_mess_code_ptr("ft_ssl: fopen", errno));
-	while ((len_read = fread((char *)buf, 1, 255, file)) > 0)
+	fseek(file, 0, SEEK_END);
+	len = ftell(file);
+	fseek(file, 0, SEEK_SET);
+	content = malloc(len + 1);
+	if (!content)
 	{
-		*len_out += len_read;
-		tmp = content;
-		if (content != NULL)
-			content = ft_strjoin(content, (char *)buf);
-		else
-			content = strdup((char *)buf);
-		if (content == NULL)
-		{
-			fprintf(stderr, "ft_ssl: fatal error: %s\n", strerror(errno));
-			free(tmp);
-			return (NULL);
-		}
-		bzero(buf, 256);
-		free(tmp);
+		fclose(file);
+		return (ret_err_mess_code_ptr("ft_ssl: malloc", errno));
 	}
-	if (ferror(file))
-		fprintf(stderr, "ft_ssl: fgets: %s\n", strerror(errno));
+	if (fread(content, 1, len, file) != len)
+	{
+		free(content);
+		fclose(file);
+		return (ret_err_mess_ptr("ft_ssl: fread: short read"));
+	}
+	content[len] = '\0';
+	*len_out = len;
 	fclose(file);
 	return (content);
 }
