@@ -386,13 +386,18 @@ bool	des_setup(char **to_encrypt, t_des_data *des_data, t_data *data)
 
 	/* --- STEP 2: BASE64-DECODE INPUT FIRST so header is visible --- */
 	if ((data->options & B64) && (data->options & DECODE))
-		des_decode_b64_input(to_encrypt, &des_data->len_to_enc);
-
-	/* --- STEP 3: STRIP Salted__ HEADER (password-based decode only) --- */
-	if (!data->raw_key && (data->options & DECODE)
-		&& *to_encrypt && des_data->len_to_enc >= 16
-		&& !memcmp(*to_encrypt, SALTBYTES, 8))
 	{
+		des_decode_b64_input(to_encrypt, &des_data->len_to_enc);
+		data->in = NULL; // des_decode_b64_input freed data->in; prevent double free in exit_free
+	}
+
+	/* --- STEP 3: STRIP Salted__ HEADER (password-based decode, no explicit salt) --- */
+	if (!data->raw_key && !data->raw_salt && (data->options & DECODE))
+	{
+		if (*to_encrypt && des_data->len_to_enc < 16)
+			return (ret_err_mess("ft_ssl: des: input too short."));
+		if (memcmp(*to_encrypt, SALTBYTES, 8))
+			return (ret_err_mess("ft_ssl: des: wrong magic bytes."));
 		char		*buf = *to_encrypt;
 		uint64_t	tmp = 0;
 		char		*cipher = NULL;
@@ -415,7 +420,8 @@ bool	des_setup(char **to_encrypt, t_des_data *des_data, t_data *data)
 		int	fd = open("/dev/urandom", O_RDONLY);
 		if (fd >= 0)
 		{
-			(void)read(fd, &data->salt, sizeof(uint64_t));
+			if (read(fd, &data->salt, sizeof(uint64_t)) < 0)
+				return (EXIT_FAILURE);
 			close(fd);
 		}
 		l_data.salt = data->salt;
